@@ -31,6 +31,7 @@ class ResNet4Cifar(nn.Module):
             zero_init_residual: bool = False,
             groups: int = 1,
             width_per_group: int = 64,
+            width_list=[16,32,64],
             replace_stride_with_dilation: Optional[List[bool]] = None,
             norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
@@ -53,13 +54,14 @@ class ResNet4Cifar(nn.Module):
         self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
-        self.layer1 = self._make_layer(block, 16, layers[0])
-        self.layer2 = self._make_layer(block, 32, layers[1], stride=2,
+
+        self.layer1 = self._make_layer(block, width_list[0], layers[0])
+        self.layer2 = self._make_layer(block, width_list[1], layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 64, layers[2], stride=2,
+        self.layer3 = self._make_layer(block, width_list[2], layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
         self.avgpool = nn.AvgPool2d(8, stride=1)
-        self.fc = nn.Linear(64 * block.expansion, num_classes)
+        self.fc = nn.Linear(width_list[2] * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

@@ -1,14 +1,16 @@
 import argparse
 import datetime
-import os
+import os,sys
 import time
-
+os.chdir('/home/qiuziming/product/torchdistill')
+root=os.getcwd()
+sys.path.append(root)
 import torch
 from torch import distributed as dist
 from torch.backends import cudnn
 from torch.nn import DataParallel
 from torch.nn.parallel import DistributedDataParallel
-
+from SST.KernelFeature.KFloss import KFLoss
 from torchdistill.common import file_util, yaml_util, module_util
 from torchdistill.common.constant import def_logger
 from torchdistill.common.main_util import is_main_process, init_distributed_mode, load_ckpt, save_ckpt, set_seed
@@ -25,9 +27,10 @@ logger = def_logger.getChild(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config', required=True, help='yaml file path')
+    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50-final_run.yaml',help='yaml file path')
+    # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/resnet18_from_resnet50_atloss.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
@@ -60,7 +63,8 @@ def train_one_epoch(training_box, device, epoch, log_freq):
             metric_logger.log_every(training_box.train_data_loader, log_freq, header):
         start_time = time.time()
         sample_batch, targets = sample_batch.to(device), targets.to(device)
-        loss = training_box(sample_batch, targets, supp_dict)
+        with torch.cuda.amp.autocast():
+            loss = training_box(sample_batch, targets, supp_dict)
         training_box.update_params(loss)
         batch_size = sample_batch.shape[0]
         metric_logger.update(loss=loss.item(), lr=training_box.optimizer.param_groups[0]['lr'])

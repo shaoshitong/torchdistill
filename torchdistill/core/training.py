@@ -189,7 +189,6 @@ class TrainingBox(nn.Module):
         extracted_model_io_dict = extract_io_dict(self.model_io_dict, self.device)
         if isinstance(self.model, SpecialModule):
             self.model.post_forward(extracted_model_io_dict)
-
         teacher_outputs = None
         org_loss_dict = self.extract_org_loss(self.org_criterion, model_outputs, teacher_outputs, targets,
                                               uses_teacher_output=False, supp_dict=supp_dict)

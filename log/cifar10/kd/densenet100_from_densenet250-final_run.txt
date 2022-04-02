@@ -1,0 +1,20 @@
+2022-03-29 15:20:55,387	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-03-29 15:20:55,387	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar10/kd/densenet100_from_densenet250-final_run.yaml', device='cuda', dist_url='env://', log='log/cifat10/kd/densenet100_from_densenet250-final_run.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-03-29 15:20:55,398	INFO	torchdistill.datasets.util	Loading train data
+2022-03-29 15:20:55,902	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.50492262840271 sec
+2022-03-29 15:20:55,903	INFO	torchdistill.datasets.util	Loading val data
+2022-03-29 15:20:56,311	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.40816688537597656 sec
+2022-03-29 15:20:56,311	INFO	torchdistill.datasets.util	Loading test data
+2022-03-29 15:20:56,719	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.4082155227661133 sec
+2022-03-29 15:20:56,864	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/teacher/cifar10-densenet_bc_k24_depth250.pt`
+2022-03-29 15:20:59,026	INFO	torchdistill.common.main_util	Loading model parameters
+2022-03-29 15:20:59,055	INFO	__main__	Start training
+2022-03-29 15:20:59,055	INFO	torchdistill.models.util	[teacher model]
+2022-03-29 15:20:59,055	INFO	torchdistill.models.util	Using the original teacher model
+2022-03-29 15:20:59,055	INFO	torchdistill.models.util	[student model]
+2022-03-29 15:20:59,055	INFO	torchdistill.models.util	Using the original student model
+2022-03-29 15:20:59,056	INFO	torchdistill.core.distillation	Loss = 1.0 * OrgLoss + 1000.0 * ATLoss()
+2022-03-29 15:20:59,056	INFO	torchdistill.core.distillation	Freezing the whole teacher model
+2022-03-29 15:20:59,081	INFO	torchdistill.common.main_util	Loading optimizer parameters
+2022-03-29 15:20:59,090	INFO	torchdistill.common.main_util	Loading scheduler parameters
+2022-03-29 15:21:03,005	INFO	torchdistill.misc.log	Epoch: [0]  [  0/391]  eta: 0:25:29  lr: 0.1  img/s: 38.21380275626914  loss: 3.1114 (3.1114)  time: 3.9119  data: 0.5622  max mem: 4821

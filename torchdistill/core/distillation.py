@@ -21,6 +21,7 @@ from torchdistill.models.special import SpecialModule, build_special_module
 from torchdistill.models.util import redesign_model
 from torchdistill.optim.registry import get_optimizer, get_scheduler
 
+scaler=torch.cuda.amp.GradScaler()
 logger = def_logger.getChild(__name__)
 try:
     from apex import amp
@@ -303,6 +304,9 @@ class DistillationBox(nn.Module):
             self.get_teacher_output(sample_batch, targets, supp_dict=supp_dict)
         student_outputs = self.student_forward_proc(self.student_model, sample_batch, targets, supp_dict)
         extracted_student_io_dict = extract_io_dict(self.student_io_dict, self.device)
+        # for s,t in zip(extracted_teacher_io_dict.values(),extracted_student_io_dict.values()):
+        #     print(s['output'].shape,t['output'].shape)
+        # print("")
         if isinstance(self.student_model, SpecialModule):
             self.student_model.post_forward(extracted_student_io_dict)
 
@@ -325,15 +329,14 @@ class DistillationBox(nn.Module):
             with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
-            loss.backward()
-
+            scaler.scale(loss).backward()
         if self.stage_grad_count % self.grad_accum_step == 0:
             if self.max_grad_norm is not None:
                 target_params = amp.master_params(self.optimizer) if self.apex \
                     else [p for group in self.optimizer.param_groups for p in group['params']]
                 torch.nn.utils.clip_grad_norm_(target_params, self.max_grad_norm)
-
-            self.optimizer.step()
+            scaler.step(self.optimizer)
+            scaler.update()
             self.optimizer.zero_grad()
 
         # Step-wise scheduler step

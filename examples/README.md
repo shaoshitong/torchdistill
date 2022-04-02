@@ -38,15 +38,15 @@ cd ../../../../
 e.g., Teacher: ResNet-152, Student: AlexNet  
 a) Use GPUs for multiple distributed training processes
 ```shell
-python3 -m torch.distributed.launch --nproc_per_node=${NUM_GPUS} --use_env examples/image_classification.py --world_size ${NUM_GPUS} --config configs/sample/ilsvrc2012/single_stage/kd/alexnet_from_resnet152.yaml --log log/ilsvrc2012/kd/alexnet_from_resnet152.txt
+python3 -m torch.distributed.launch --nproc_per_node=${NUM_GPUS} --use_env examples/image_classification_atl.py --world_size ${NUM_GPUS} --config configs/sample/ilsvrc2012/single_stage/kd/alexnet_from_resnet152.yaml --log log/ilsvrc2012/kd/alexnet_from_resnet152.txt
 ```
 b) Use GPU(s) for single training process
 ```shell
-python3 examples/image_classification.py --config configs/sample/ilsvrc2012/single_stage/kd/alexnet_from_resnet152.yaml --log log/ilsvrc2012/kd/alexnet_from_resnet152.txt
+python3 examples/image_classification_atl.py --config configs/sample/ilsvrc2012/single_stage/kd/alexnet_from_resnet152.yaml --log log/ilsvrc2012/kd/alexnet_from_resnet152.txt
 ```  
 c) Use CPU
 ```shell
-python3 examples/image_classification.py --device cpu --config configs/sample/ilsvrc2012/single_stage/kd/alexnet_from_resnet152.yaml --log log/ilsvrc2012/kd/alexnet_from_resnet152.txt
+python3 examples/image_classification_atl.py --device cpu --config configs/sample/ilsvrc2012/single_stage/kd/alexnet_from_resnet152.yaml` --log log/ilsvrc2012/kd/alexnet_from_resnet152.txt`
 ```  
 
 

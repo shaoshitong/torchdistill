@@ -36,6 +36,41 @@ def extract_feature_map(io_dict, feature_map_config):
     return io_dict[module_path][io_type]
 
 
+
+@register_single_loss
+class KFLoss(nn.Module):
+    def __init__(self,factor_fkd=1.0,factor_fr=0.1):
+        super(KFLoss, self).__init__()
+        self.mm=lambda x:torch.matmul(x,x.T)
+        self.adaptivepool2d=nn.AdaptiveAvgPool2d((1,1))
+        self.flatten=nn.Flatten()
+        self.factor_fkd=factor_fkd
+        self.factor_fr=factor_fr
+    def forward(self, student_io_dict, teacher_io_dict, *args, **kwargs):
+        student_list=[m['output'] for m in student_io_dict.values()]
+        teacher_list=[m['output'] for m in teacher_io_dict.values()]
+        assert len(student_list)==len(teacher_list),"the len should be same!"
+        kfd_loss=0.
+        for student_feature_map,teacher_feature_map in zip(student_list,teacher_list):
+            if student_feature_map.ndim==4:
+                sm=student_feature_map=self.flatten(self.adaptivepool2d(student_feature_map))
+            else:
+                sm=student_feature_map
+            norm_student=student_feature_map.pow(2).sum(1,keepdim=True).sqrt()
+            student_feature_map=student_feature_map/norm_student
+            s_k=self.mm(student_feature_map)
+            with torch.no_grad():
+                if teacher_feature_map.ndim == 4:
+                    teacher_feature_map=self.flatten(self.adaptivepool2d(teacher_feature_map))
+                norm_teacher=teacher_feature_map.pow(2).sum(1,keepdim=True).sqrt()
+                teacher_feature_map=teacher_feature_map/norm_teacher
+                t_k=self.mm(teacher_feature_map)
+            distill_loss=(s_k-t_k).pow(2).mean()
+            loss=distill_loss*self.factor_fkd+sm.pow(2).mean()*self.factor_fr
+            kfd_loss+=loss
+        return kfd_loss
+
+
 @register_loss_wrapper
 class SimpleLossWrapper(nn.Module):
     def __init__(self, single_loss, params_config):
@@ -834,7 +869,6 @@ class HierarchicalContextLoss(nn.Module):
         for k in self.kernel_sizes:
             if k >= h:
                 continue
-
             proc_student_features = adaptive_avg_pool2d(student_features, (k, k))
             proc_teacher_features = adaptive_avg_pool2d(teacher_features, (k, k))
             weight /= 2.0

@@ -31,6 +31,7 @@ def set_hooks(model, unwrapped_org_model, model_config, io_dict):
     input_module_path_set = set(forward_hook_config.get('input', list()))
     output_module_path_set = set(forward_hook_config.get('output', list()))
     for target_module_path in input_module_path_set.union(output_module_path_set):
+        print(target_module_path,input_module_path_set)
         requires_input = target_module_path in input_module_path_set
         requires_output = target_module_path in output_module_path_set
         set_distillation_box_info(io_dict, target_module_path)

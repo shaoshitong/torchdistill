@@ -16,7 +16,6 @@ def get_image_classification_model(model_config, distributed=False):
         model = models.quantization.__dict__[model_name](**model_config['params'])
     else:
         return None
-
     sync_bn = model_config.get('sync_bn', False)
     if distributed and sync_bn:
         model = SyncBatchNorm.convert_sync_batchnorm(model)
