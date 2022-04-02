@@ -76,7 +76,7 @@ train:
   teacher:
     sequential: []
     forward_hook:
-      input: [ ]
+      input: []
       output: ['layer3']
     wrapper: 'DistributedDataParallel'
     requires_grad: False
@@ -85,7 +85,7 @@ train:
     adaptations:
     sequential: []
     forward_hook:
-      input: [ ]
+      input: []
       output: ['layer3']
     wrapper: 'DistributedDataParallel'
     requires_grad: True
