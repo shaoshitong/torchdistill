@@ -5,10 +5,14 @@ import torch.nn.functional as F
 
 @register_single_loss
 class KFLoss(nn.Module):
-    def __init__(self,factor_fkd=1.0,factor_fr=0.1):
+    def __init__(self,factor_fkd=1.0,factor_fr=0.1,c=False):
         super(KFLoss, self).__init__()
+        print(c)
         self.mm=lambda x:torch.matmul(x,x.T)
-        self.adaptivepool2d=nn.AdaptiveAvgPool2d((1,1))
+        if c==False:
+            self.adaptivepool2d=nn.AdaptiveAvgPool2d((1,1))
+        else:
+            self.adaptivepool2d=lambda x:x.mean(1)
         self.flatten=nn.Flatten()
         self.factor_fkd=factor_fkd
         self.factor_fr=factor_fr
@@ -18,13 +22,16 @@ class KFLoss(nn.Module):
         assert len(student_list)==len(teacher_list),"the len should be same!"
         kfd_loss=0.
         for student_feature_map,teacher_feature_map in zip(student_list,teacher_list):
-            sm=student_feature_map=self.flatten(self.adaptivepool2d(student_feature_map))
+            if student_feature_map.ndim==4:
+                sm=student_feature_map=self.flatten(self.adaptivepool2d(student_feature_map))
+            else:
+                sm=student_feature_map
             norm_student=student_feature_map.pow(2).sum(1,keepdim=True).sqrt()
             student_feature_map=student_feature_map/norm_student
             s_k=self.mm(student_feature_map)
-
             with torch.no_grad():
-                teacher_feature_map=self.flatten(self.adaptivepool2d(teacher_feature_map))
+                if teacher_feature_map.ndim == 4:
+                    teacher_feature_map=self.flatten(self.adaptivepool2d(teacher_feature_map))
                 norm_teacher=teacher_feature_map.pow(2).sum(1,keepdim=True).sqrt()
                 teacher_feature_map=teacher_feature_map/norm_teacher
                 t_k=self.mm(teacher_feature_map)
@@ -32,11 +39,3 @@ class KFLoss(nn.Module):
             loss=distill_loss*self.factor_fkd+sm.pow(2).mean()*self.factor_fr
             kfd_loss+=loss
         return kfd_loss
-
-
-
-
-
-
-
-

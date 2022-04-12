@@ -136,8 +136,9 @@ def load_ckpt(ckpt_file_path, model=None, optimizer=None, lr_scheduler=None, str
 
 
 def save_ckpt(model, optimizer, lr_scheduler, best_value, config, args, output_file_path):
-    make_parent_dirs(output_file_path)
-    model_state_dict = model.module.state_dict() if check_if_wrapped(model) else model.state_dict()
-    lr_scheduler_state_dict = lr_scheduler.state_dict() if lr_scheduler is not None else None
-    save_on_master({'model': model_state_dict, 'optimizer': optimizer.state_dict(), 'best_value': best_value,
-                    'lr_scheduler': lr_scheduler_state_dict, 'config': config, 'args': args}, output_file_path)
+    if output_file_path:
+        make_parent_dirs(output_file_path)
+        model_state_dict = model.module.state_dict() if check_if_wrapped(model) else model.state_dict()
+        lr_scheduler_state_dict = lr_scheduler.state_dict() if lr_scheduler is not None else None
+        save_on_master({'model': model_state_dict, 'optimizer': optimizer.state_dict(), 'best_value': best_value,
+                        'lr_scheduler': lr_scheduler_state_dict, 'config': config, 'args': args}, output_file_path)

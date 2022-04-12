@@ -10,7 +10,7 @@ from torch import distributed as dist
 from torch.backends import cudnn
 from torch.nn import DataParallel
 from torch.nn.parallel import DistributedDataParallel
-from SST.KernelFeature.KFloss import KFLoss
+from SST.loss.KFloss import KFLoss
 from torchdistill.common import file_util, yaml_util, module_util
 from torchdistill.common.constant import def_logger
 from torchdistill.common.main_util import is_main_process, init_distributed_mode, load_ckpt, save_ckpt, set_seed
@@ -30,7 +30,7 @@ def get_argparser():
     parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_origin.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/resnet18_from_resnet50_origin.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/resnet18_from_resnet50_origin_1.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')

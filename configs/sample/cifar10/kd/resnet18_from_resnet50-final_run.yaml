@@ -108,20 +108,34 @@ train:
     type: 'GeneralizedCustomLoss'
     org_term:
       criterion:
-        type: 'KDLoss'
+        type: 'CrossEntropyLoss'
         params:
-          temperature: 4.0
-          alpha: 0.9
-          reduction: 'batchmean'
+          reduction: 'mean'
       factor: 1.0
     sub_terms:
       at_loss:
         criterion:
-          type: 'KFLoss'
+          type: 'ATLoss'
           params:
-            factor_fkd: 1
-            factor_fr: 0.1
-        factor: 1.0
+            at_pairs:
+              pair1:
+                teacher:
+                  io: 'output'
+                  path: 'layer2'
+                student:
+                  io: 'output'
+                  path: 'layer2'
+                factor: 1
+              pair2:
+                teacher:
+                  io: 'output'
+                  path: 'layer3'
+                student:
+                  io: 'output'
+                  path: 'layer3'
+                factor: 1
+            mode: 'code'
+        factor: 1000.0
 test:
   test_data_loader:
     dataset_id: *cifar10_test

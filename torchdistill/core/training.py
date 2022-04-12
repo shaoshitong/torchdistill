@@ -71,7 +71,6 @@ class TrainingBox(nn.Module):
         logger.info(self.criterion)
         self.uses_teacher_output = False
         self.extract_org_loss = get_func2extract_org_output(criterion_config.get('func2extract_org_loss', None))
-
     def setup(self, train_config):
         # Set up train and val data loaders
         self.setup_data_loaders(train_config)

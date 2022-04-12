@@ -127,6 +127,7 @@ train:
           params:
             factor_fkd: 1
             factor_fr: 0.0
+            c: True
         factor: 1
 test:
   test_data_loader:

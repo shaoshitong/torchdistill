@@ -1,0 +1,18 @@
+2022-04-12 15:21:15,703	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-04-12 15:21:15,703	INFO	__main__	Namespace(adjust_lr=False, config='/home/qiuziming/product/torchdistill/configs/official/ilsvrc2012/yoshitomo-matsubara/rrpr2020/sskd-resnet18_from_resnet34.yaml', device='cuda', dist_url='env://', log='/home/qiuziming/product/torchdistill/log/ilsvrc2012/kd/sskd/resnet18_from_resnet34', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-04-12 15:21:15,718	INFO	torchdistill.datasets.util	Loading train data
+2022-04-12 15:21:18,115	INFO	torchdistill.datasets.util	dataset_id `ilsvrc2012/train`: 2.3976128101348877 sec
+2022-04-12 15:21:18,115	INFO	torchdistill.datasets.util	Loading val data
+2022-04-12 15:21:18,223	INFO	torchdistill.datasets.util	dataset_id `ilsvrc2012/val`: 0.1074984073638916 sec
+2022-04-12 15:21:18,424	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/ilsvrc2012/teacher/ilsvrc2012-resnet34.pt`
+2022-04-12 15:21:20,532	INFO	torchdistill.common.main_util	ckpt file is not found at `./imagenet/sskd/ilsvrc2012-resnet18_from_resnet34.pt`
+2022-04-12 15:21:20,556	INFO	__main__	Start training
+2022-04-12 15:21:20,559	INFO	torchdistill.models.util	[teacher model]
+2022-04-12 15:21:20,559	INFO	torchdistill.models.util	Using the SSWrapper4SSKD teacher model
+2022-04-12 15:21:20,559	INFO	torchdistill.models.util	Frozen module(s): {'model'}
+2022-04-12 15:21:20,559	INFO	torchdistill.models.util	[student model]
+2022-04-12 15:21:20,559	INFO	torchdistill.models.util	Using the EmptyModule student model
+2022-04-12 15:21:20,559	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxSSKDLoss()
+2022-04-12 15:21:20,560	INFO	torchdistill.core.distillation	Freezing the whole student model
+2022-04-12 15:21:20,561	INFO	torchdistill.core.distillation	Note that you are training some/all of the modules in the teacher model
+2022-04-12 15:21:20,561	INFO	torchdistill.core.distillation	Started stage 1

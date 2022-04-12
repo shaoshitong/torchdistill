@@ -31,6 +31,7 @@ def get_argparser():
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--log', default='log/ilsvrc2012/kd/fkd/fkd-resnet18_from_resnet34-fc.txt',help='log file path')
+    #parser.add_argument('--log', default='log/cifar10/kd/fkd/resnet18_from_resnet50_origin_layer3_cc.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
@@ -49,8 +50,9 @@ def load_model(model_config, device, distributed):
     if model is None:
         repo_or_dir = model_config.get('repo_or_dir', None)
         model = get_model(model_config['name'], repo_or_dir, **model_config['params'])
-    ckpt_file_path = model_config['ckpt']
-    load_ckpt(ckpt_file_path, model=model, strict=True)
+    ckpt_file_path = model_config.get('ckpt',None)
+    if ckpt_file_path:
+        load_ckpt(ckpt_file_path, model=model, strict=True)
     return model.to(device)
 
 
@@ -160,7 +162,8 @@ def main(args):
         load_model(teacher_model_config, device, distributed) if teacher_model_config is not None else None
     student_model_config =\
         models_config['student_model'] if 'student_model' in models_config else models_config['model']
-    ckpt_file_path = student_model_config['ckpt']
+
+    ckpt_file_path = student_model_config.get('ckpt',None)
     student_model = load_model(student_model_config, device, distributed)
     if args.log_config:
         logger.info(config)
@@ -169,8 +172,8 @@ def main(args):
         train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, device_ids, distributed, config, args)
         student_model_without_ddp =\
             student_model.module if module_util.check_if_wrapped(student_model) else student_model
-        load_ckpt(student_model_config['ckpt'], model=student_model_without_ddp, strict=True)
-
+        if student_model_config.get('ckpr',None):
+            load_ckpt(student_model_config['ckpt'], model=student_model_without_ddp, strict=True)
     test_config = config['test']
     test_data_loader_config = test_config['test_data_loader']
     test_data_loader = util.build_data_loader(dataset_dict[test_data_loader_config['dataset_id']],

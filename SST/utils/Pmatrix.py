@@ -22,20 +22,11 @@ def Matrix_VIS(matrix):
     color=(matrix-min)/(max-min+1e-12)
     xrange=np.arange(0,rang,1)
     yrange=np.arange(0,rang,1)
-    xx,yy=np.meshgrid(xrange,yrange)
-    Z=matrix
-    df=np.concatenate([xx.reshape(-1)[...,None],yy.reshape(-1)[...,None],color.reshape(-1)[...,None]*10],axis=1)
-    df=pd.DataFrame(df,columns=["x","y","z"])
-    print(df)
-
-    fig=go.Figure(
-        # data=px.scatter(
-        #     df,x="x",y="y",color="z",
-        # )
-    )
-    # fig.update_traces(
-    #     marker_size=0.01, marker_line_width=0.01,
-    #     marker_color="lightyellow")
+    # xx,yy=np.meshgrid(xrange,yrange)
+    # Z=matrix
+    Z=(matrix-matrix.min())/(matrix.max()-matrix.min()+1e-6)
+    # df=np.concatenate([xx.reshape(-1)[...,None],yy.reshape(-1)[...,None],color.reshape(-1)[...,None]*10],axis=1)
+    fig=go.Figure()
     fig.add_trace(
         go.Contour(x=xrange,y=yrange,z=Z,
                       showscale=False,
@@ -43,7 +34,6 @@ def Matrix_VIS(matrix):
                       opacity=1,
                       name='Score',
                      connectgaps=True
-                      # hoverinfo='skip',
                    )
     )
     time1_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')

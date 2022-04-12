@@ -16,7 +16,6 @@ def register_model_func(func):
 
 
 def get_model(model_name, repo_or_dir=None, **kwargs):
-    print(MODEL_FUNC_DICT)
     if model_name in MODEL_CLASS_DICT:
         return MODEL_CLASS_DICT[model_name](**kwargs)
     elif model_name in MODEL_FUNC_DICT:

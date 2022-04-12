@@ -38,6 +38,7 @@ class Kernel_VIS(nn.Module):
        def __init__(self):
               super(Kernel_VIS, self).__init__()
               self.flatten=nn.Flatten()
+              # self.adaptivepool2d=lambda x:x.mean(1)
               self.adaptivepool2d=nn.AdaptiveAvgPool2d((1,1))
        @torch.no_grad()
        def tensor_matrix(self,tensor):

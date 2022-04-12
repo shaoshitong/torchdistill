@@ -2,10 +2,24 @@ from typing import Type, Any, Callable, Union, List, Optional
 
 import torch
 import torch.nn as nn
+import torchvision.models
 from torch import Tensor
 from torchvision.models.resnet import BasicBlock, conv1x1
-
+from torchdistill.models.classification.mlp import MLP
 from torchdistill.models.registry import register_model_func
+
+def load_model(model_dict,model):
+    model_state_dict=model.state_dict()
+    pretrained_dict = {k: v for k, v in model_dict.items() if k in model_state_dict and v.shape == model_state_dict[k].shape}
+    print(f"the prune number is {len(model_state_dict.keys())-len(pretrained_dict.keys())}")
+    for k,v in pretrained_dict.items():
+        if "norm" in k and "num_batches_tracked" not in k:
+            pretrained_dict[k].requires_grad=True
+        elif "turn_layer" in k and "conv" in k:
+            pretrained_dict[k].requires_grad=True
+    model_state_dict.update(pretrained_dict)
+    model.load_state_dict(model_state_dict)
+    return model
 
 """
 Refactored https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
@@ -21,7 +35,6 @@ MODEL_URL_DICT = {
     'cifar10-resnet110': ROOT_URL + '/v0.1.1/cifar10-resnet110.pt'
 }
 
-
 class ResNet4Cifar(nn.Module):
     def __init__(
             self,
@@ -33,13 +46,17 @@ class ResNet4Cifar(nn.Module):
             width_per_group: int = 64,
             width_list=[16,32,64],
             replace_stride_with_dilation: Optional[List[bool]] = None,
-            norm_layer: Optional[Callable[..., nn.Module]] = None
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
+            multi_classifier=False,
+            outs_classifier=True,
+            **kwargs
     ) -> None:
         super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
-
+        self.layers=layers
+        self.multi_classifier=multi_classifier
         self.inplanes = 16
         self.dilation = 1
         if replace_stride_with_dilation is None:
@@ -49,6 +66,7 @@ class ResNet4Cifar(nn.Module):
         if len(replace_stride_with_dilation) != 3:
             raise ValueError("replace_stride_with_dilation should be None "
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
+        self.outs_classifier=outs_classifier
         self.groups = groups
         self.base_width = width_per_group
         self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=3, stride=1, padding=1, bias=False)
@@ -60,6 +78,10 @@ class ResNet4Cifar(nn.Module):
                                        dilate=replace_stride_with_dilation[0])
         self.layer3 = self._make_layer(block, width_list[2], layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
+        if self.multi_classifier:
+            self.layer1_fc=MLP(width_list[0],num_classes,256)
+            self.layer2_fc=MLP(width_list[1],num_classes,256)
+            self.layer3_fc=MLP(width_list[2],num_classes,256)
         self.avgpool = nn.AvgPool2d(8, stride=1)
         self.fc = nn.Linear(width_list[2] * block.expansion, num_classes)
 
@@ -109,13 +131,21 @@ class ResNet4Cifar(nn.Module):
         x = self.bn1(x)
         x = self.relu(x)
         x = self.layer1(x)
+        if self.multi_classifier:
+            out1=self.layer1_fc(x)
         x = self.layer2(x)
+        if self.multi_classifier:
+            out2=self.layer2_fc(x)
         x = self.layer3(x)
+        if self.multi_classifier:
+            out3=self.layer3_fc(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)
-        return x
-
+        if self.multi_classifier and (self.outs_classifier or (not self.training)):
+            return out1,out2,out3,x
+        else:
+            return x
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
 
@@ -132,9 +162,14 @@ def resnet(
     n = (depth - 2) // 6
     model = ResNet4Cifar(BasicBlock, [n, n, n], num_classes, **kwargs)
     model_key = 'cifar{}-resnet{}'.format(num_classes, depth)
-    if pretrained and model_key in MODEL_URL_DICT:
+    URL=kwargs.get("repo_url",None)
+    if pretrained and URL :
+        state_dict = torch.load(URL)['model']
+        load_model(state_dict,model)
+        return model
+    if  pretrained and model_key in MODEL_URL_DICT:
         state_dict = torch.hub.load_state_dict_from_url(MODEL_URL_DICT[model_key], progress=progress)
-        model.load_state_dict(state_dict)
+        load_model(state_dict,model)
     return model
 
 

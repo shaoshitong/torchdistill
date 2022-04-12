@@ -49,16 +49,16 @@ models:
     params:
       num_classes: 10
       pretrained: True
+#      repo_url: !join [ './resource/ckpt/', *dataset_name, '/kd/', 'cifar10-resnet56-origin-w', '.pt' ]
     experiment: &teacher_experiment !join [*dataset_name, '-', *teacher_model_name]
-    ckpt: !join ['./resource/ckpt/', *dataset_name, '/teacher/', *teacher_experiment, '.pt']
+    ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', 'cifar10-resnet56-origin-o', '.pt']
   student_model:
     name: &student_model_name 'resnet20'
     params:
       num_classes: 10
       pretrained: False
     experiment: &student_experiment !join [*dataset_name, '-', *student_model_name, '_from_', *teacher_model_name]
-    ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', *student_experiment, '-final_run.pt']
-
+#    ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', *student_experiment, '-final_run.pt']
 train:
   log_freq: 100
   num_epochs: 182
@@ -127,6 +127,7 @@ train:
           params:
             factor_fkd: 1
             factor_fr: 0.0
+            c: False
         factor: 1
 test:
   test_data_loader:

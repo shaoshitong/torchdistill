@@ -148,6 +148,7 @@ def get_dataset_dict(dataset_config):
             split_config = dataset_splits_config[split_name]
             org_dataset = get_torchvision_dataset(dataset_cls_or_func, split_config['params']) if is_torchvision \
                 else dataset_cls_or_func(**split_config['params'])
+            print(dataset_cls_or_func,split_config['params'])
             dataset_id = split_config['dataset_id']
             random_split_config = split_config.get('random_split', None)
             if random_split_config is None:

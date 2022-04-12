@@ -45,7 +45,7 @@ class DistillationBox(nn.Module):
             self.val_data_loader = val_data_loader
 
     def setup_teacher_student_models(self, teacher_config, student_config):
-        unwrapped_org_teacher_model =\
+        unwrapped_org_teacher_model = \
             self.org_teacher_model.module if check_if_wrapped(self.org_teacher_model) else self.org_teacher_model
         unwrapped_org_student_model = \
             self.org_student_model.module if check_if_wrapped(self.org_student_model) else self.org_student_model
@@ -53,6 +53,9 @@ class DistillationBox(nn.Module):
         self.target_student_pairs.clear()
         teacher_ref_model = unwrapped_org_teacher_model
         student_ref_model = unwrapped_org_student_model
+        """
+        构建每个知识蒸馏算法的特有层
+        """
         if len(teacher_config) > 0 or (len(teacher_config) == 0 and self.teacher_model is None):
             model_type = 'original'
             special_teacher_model = \
@@ -72,15 +75,23 @@ class DistillationBox(nn.Module):
                 student_ref_model = special_student_model
                 model_type = type(student_ref_model).__name__
             self.student_model = redesign_model(student_ref_model, student_config, 'student', model_type)
-
+        """
+        判断是否压缩
+        """
         self.teacher_any_frozen = \
             len(teacher_config.get('frozen_modules', list())) > 0 or not teacher_config.get('requires_grad', True)
         self.student_any_frozen = \
             len(student_config.get('frozen_modules', list())) > 0 or not student_config.get('requires_grad', True)
+        """
+        注册hook
+        """
         self.target_teacher_pairs.extend(set_hooks(self.teacher_model, teacher_ref_model,
                                                    teacher_config, self.teacher_io_dict))
         self.target_student_pairs.extend(set_hooks(self.student_model, student_ref_model,
                                                    student_config, self.student_io_dict))
+        """
+        前传方式
+        """
         self.teacher_forward_proc = get_forward_proc_func(teacher_config.get('forward_proc', None))
         self.student_forward_proc = get_forward_proc_func(student_config.get('forward_proc', None))
 
@@ -202,7 +213,6 @@ class DistillationBox(nn.Module):
             self.student_model, self.optimizer =\
                 amp.initialize(self.student_model, self.optimizer, opt_level=apex_config['opt_level'])
             self.apex = True
-
     def __init__(self, teacher_model, student_model, dataset_dict,
                  train_config, device, device_ids, distributed, lr_factor, accelerator=None):
         super().__init__()
@@ -303,10 +313,9 @@ class DistillationBox(nn.Module):
         teacher_outputs, extracted_teacher_io_dict =\
             self.get_teacher_output(sample_batch, targets, supp_dict=supp_dict)
         student_outputs = self.student_forward_proc(self.student_model, sample_batch, targets, supp_dict)
+        # teacher_outputs student_outputs  模型forward输出
+        # extracted_teacher_io_dict和extracted_student_io_dict则是hook
         extracted_student_io_dict = extract_io_dict(self.student_io_dict, self.device)
-        # for s,t in zip(extracted_teacher_io_dict.values(),extracted_student_io_dict.values()):
-        #     print(s['output'].shape,t['output'].shape)
-        # print("")
         if isinstance(self.student_model, SpecialModule):
             self.student_model.post_forward(extracted_student_io_dict)
 

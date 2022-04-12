@@ -5,12 +5,33 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+colors=['#8ECFC9','#FFBE7A','#FA7F6F','#82B0D2','#9394E7','#D76364','#54B345','#05B9E2']
 def get_argparser():
     parser = argparse.ArgumentParser(description='Log visualizer')
     parser.add_argument('--logs', required=True, metavar='N', nargs='+', help='list of log file paths to visualize')
     parser.add_argument('--labels', metavar='N', nargs='+', help='list of labels used in plots')
     parser.add_argument('--task', default='classification', help='type of tasks defined in the log files')
     return parser
+
+def Smooth_loss(loss,weight=0.85,window=2):
+    scaler=loss
+    last=scaler[0]
+    smoothed=[]
+    loss_min=[]
+    loss_max=[]
+    for i,point in enumerate(scaler):
+        smoothed_val=last*weight+point*(1-weight)
+        smoothed.append(smoothed_val)
+        last=smoothed_val
+        left_index=max(0,i-window)
+        right_index=min(len(scaler)-1,i+window)
+        selected_point=loss[left_index:right_index]
+        val_min=min(min(selected_point),smoothed_val)
+        val_max=max(max(selected_point),smoothed_val)
+        loss_max.append(val_max)
+        loss_min.append(val_min)
+    return smoothed,loss_min,loss_max
+
 
 
 def read_files(file_paths, labels):
@@ -68,29 +89,42 @@ def extract_val_performance(log_lines):
 
 
 def visualize_val_performance(log_dict):
-    sns.set()
+    # sns.set()
     val_performance_dict = dict()
-    for file_path, (log_lines, label) in log_dict.items():
+    # plt.figure(facecolor='white',edgecolor='black')
+    for i,(file_path, (log_lines, label)) in enumerate(log_dict.items()):
         train_times, val_acc1s = extract_val_performance(log_lines)
         val_performance_dict[file_path] = (train_times, val_acc1s, label)
         xs = list(range(len(val_acc1s)))
-        plt.plot(xs, val_acc1s, label=r'${}$'.format(label))
-
+        smoothed,loss_min,loss_max=Smooth_loss(val_acc1s,window=5)
+        print(len(loss_min),len(loss_max),len(smoothed))
+        plt.fill_between(xs,loss_min,loss_max,where=[i<j for i,j in zip(loss_min,loss_max)],alpha=0.1,interpolate=True,facecolor=colors[i])
+        plt.plot(xs, smoothed, label=r'${}$'.format(label),color=colors[i],linewidth=2)
+    ax=plt.gca()
+    ax.patch.set_facecolor("white")
+    ax.spines['bottom'].set_visible(True)
+    ax.spines['left'].set_visible(True)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.set_facecolor('white')
+    # plt.grid(True)
     plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('Top-1 Validation Accuracy [%]')
+    plt.xlim(80,188)
+    plt.ylim(82,93)
     plt.tight_layout()
     plt.show()
 
-    for file_path, (train_times, val_acc1s, label) in val_performance_dict.items():
-        accum_train_times = [sum(train_times[:i + 1]) for i in range(len(train_times))]
-        plt.plot(accum_train_times, val_acc1s, '-o', label=r'${}$'.format(label))
-
-    plt.legend()
-    plt.xlabel('Training time [sec]')
-    plt.ylabel('Top-1 Validation Accuracy [%]')
-    plt.tight_layout()
-    plt.show()
+    # for file_path, (train_times, val_acc1s, label) in val_performance_dict.items():
+    #     accum_train_times = [sum(train_times[:i + 1]) for i in range(len(train_times))]
+    #     plt.plot(accum_train_times, val_acc1s, '-o', label=r'${}$'.format(label))
+    #
+    # plt.legend()
+    # plt.xlabel('Training time [sec]')
+    # plt.ylabel('Top-1 Validation Accuracy [%]')
+    # plt.tight_layout()
+    # plt.show()
 
 
 def main(args):
@@ -103,3 +137,9 @@ def main(args):
 if __name__ == '__main__':
     argparser = get_argparser()
     main(argparser.parse_args())
+
+"""
+ python log_visualizer.py --logs /home/qiuziming/product/torchdistill/log/cifar10/kd/fkd/resnet18_from_resnet50_origin_fc_fm.txt /home/qiuziming/pr
+oduct/torchdistill/log/cifar10/kd/fkd/resnet18_from_resnet50_origin_layer1_c.txt /home/qiuziming/product/torchdistill/log/cifar10/kd/fkd/resnet18_from_resnet50_origin_layer1_fm.txt /home/qiuziming/product/torchdistill/log/cifar10/kd/fkd/resnet18_from_resnet50_origin_layer2_c.txt /home/qiuziming/product/torchdistill/log/cifar10/kd/fkd/resnet18_from_resnet50_origin_layer2_fm.txt /home/qiuziming/product/torchdistill/log/cifar10/kd/fkd/resnet18_from_resnet50_origin_layer3_c.txt /home/qiuziming/product/torchdistill/log/cifar10/kd/fkd/resnet18_from_resnet50_origin_layer3_fm.txt --labels FC Layer1-Channel Layer1-FeatureMap  Layer2-Channel Layer2-FeatureMap  Layer3-Channel Layer3-FeatureMap
+
+"""

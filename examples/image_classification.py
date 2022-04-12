@@ -1,8 +1,10 @@
 import argparse
 import datetime
-import os
+import os,sys
 import time
-
+os.chdir('/home/qiuziming/product/torchdistill')
+root=os.getcwd()
+sys.path.append(root)
 import torch
 from torch import distributed as dist
 from torch.backends import cudnn
@@ -19,7 +21,6 @@ from torchdistill.eval.classification import compute_accuracy
 from torchdistill.misc.log import setup_log_file, SmoothedValue, MetricLogger
 from torchdistill.models.official import get_image_classification_model
 from torchdistill.models.registry import get_model
-
 logger = def_logger.getChild(__name__)
 
 

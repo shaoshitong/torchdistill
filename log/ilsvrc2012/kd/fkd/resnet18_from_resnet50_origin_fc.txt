@@ -1,0 +1,8 @@
+2022-04-03 10:21:40,929	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-04-03 10:21:40,929	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar10/kd/resnet18_from_resnet50_fkd.yaml', device='cuda', dist_url='env://', log='log/ilsvrc2012/kd/fkd/resnet18_from_resnet50_origin_fc.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-04-03 10:21:40,938	INFO	torchdistill.datasets.util	Loading train data
+2022-04-03 10:21:41,430	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.4915287494659424 sec
+2022-04-03 10:21:41,430	INFO	torchdistill.datasets.util	Loading val data
+2022-04-03 10:21:41,830	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.40077972412109375 sec
+2022-04-03 10:21:41,831	INFO	torchdistill.datasets.util	Loading test data
+2022-04-03 10:21:42,230	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.39975762367248535 sec

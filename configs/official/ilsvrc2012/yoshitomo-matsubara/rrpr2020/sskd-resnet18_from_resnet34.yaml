@@ -2,7 +2,7 @@ datasets:
   ilsvrc2012:
     name: &dataset_name 'ilsvrc2012'
     type: 'ImageFolder'
-    root: &root_dir !join ['~/dataset/', *dataset_name]
+    root: &root_dir !join ['/data/Imagenet/', *dataset_name]
     splits:
       train:
         dataset_id: &imagenet_train !join [*dataset_name, '/train']
@@ -36,7 +36,6 @@ datasets:
                 size: *input_size
             - *totensor
             - *normalize
-
 models:
   teacher_model:
     name: &teacher_model_name 'resnet34'
