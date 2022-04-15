@@ -2,7 +2,7 @@ datasets:
   ilsvrc2012:
     name: &dataset_name 'ilsvrc2012'
     type: 'ImageFolder'
-    root: &root_dir !join ['/data/Imagenet/', *dataset_name]
+    root: &root_dir !join ['/home/Bigdata/', *dataset_name]
     splits:
       train:
         dataset_id: &imagenet_train !join [*dataset_name, '/train']
@@ -44,15 +44,14 @@ models:
       num_classes: 1000
       pretrained: True
     experiment: &teacher_experiment !join [*dataset_name, '-', *teacher_model_name]
-    ckpt: !join ['/data/ckpt/ilsvrc2012/teacher/', *teacher_experiment, '.pt']
+    ckpt: !join ['/home/Bigdata/ckpt/ilsvrc2012/teacher/', *teacher_experiment, '.pt']
   student_model:
     name: &student_model_name 'resnet18'
     params:
       num_classes: 1000
       pretrained: False
     experiment: &student_experiment !join [*dataset_name, '-', *student_model_name, '_from_', *teacher_model_name]
-    ckpt: !join ['/data/ckpt/ilsvrc2012/single_stage/kd/', *student_experiment, '.pt']
-
+    ckpt: !join ['/home/Bigdata/ckpt/ilsvrc2012/at/', *student_experiment, '.pt']
 
 train:
   log_freq: 1000
@@ -61,18 +60,18 @@ train:
     dataset_id: *imagenet_train
     random_sample: True
     batch_size: 256
-    num_workers: 16
+    num_workers: 8
     cache_output:
   val_data_loader:
     dataset_id: *imagenet_val
     random_sample: False
     batch_size: 128
-    num_workers: 16
+    num_workers: 8
   teacher:
     sequential: []
     forward_hook:
       input: []
-      output: ['layer3', 'layer4']
+      output: ['fc']
     wrapper: 'DataParallel'
     requires_grad: False
   student:
@@ -81,7 +80,7 @@ train:
     frozen_modules: []
     forward_hook:
       input: []
-      output: ['layer3', 'layer4']
+      output: ['fc']
     wrapper: 'DistributedDataParallel'
     requires_grad: True
   apex:
@@ -107,33 +106,17 @@ train:
           reduction: 'mean'
       factor: 1.0
     sub_terms:
-      at_loss:
+      fk_loss:
         criterion:
-          type: 'ATLoss'
+          type: 'KFLoss'
           params:
-            at_pairs:
-              pair1:
-                teacher:
-                  io: 'output'
-                  path: 'layer3'
-                student:
-                  io: 'output'
-                  path: 'layer3'
-                factor: 1
-              pair2:
-                teacher:
-                  io: 'output'
-                  path: 'layer4'
-                student:
-                  io: 'output'
-                  path: 'layer4'
-                factor: 1
-            mode: 'code'
-        factor: 1000.0
+            factor_fkd: 1
+            factor_fr: 0.0
+        factor: 1
 
 test:
   test_data_loader:
     dataset_id: *imagenet_val
     random_sample: False
     batch_size: 1
-    num_workers: 16
+    num_workers: 4
