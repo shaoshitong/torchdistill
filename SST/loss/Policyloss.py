@@ -27,16 +27,14 @@ class AuxPolicyKDLoss(nn.CrossEntropyLoss):
         target=target.view(-1,policy_len+1)
         b1_target=target[b1_indices]
         b2_target=target[b2_indices]
+        b1_target=b1_target.unsqueeze(-1).expand(-1,-1,b1).transpose(0,2)
+        b2_target=b2_target.unsqueeze(-1).expand(-1,-1,b2)
+        target_matrix=torch.cat([b1_target,b2_target],1)
         b1_output = b1_output.unsqueeze(-1).expand(-1,-1,b1).transpose(0,2)
-        b2_output = b2_output.unsqueeze(-2).expand(-1,b2,-1)
-        print(b1_output.shape,b2_output.shape)
+        b2_output = b2_output.unsqueeze(-1).expand(-1,-1,b2)
         output_matrix=torch.cat([b1_output,b2_output],1)
         learning_matrix=self.linear(output_matrix.transpose(1,2)).transpose(1,2)
-        print(learning_matrix.shape)
-        exit(-1)
-        identity=torch.eye(b1).to(learning_matrix.device)
-        classes=torch.equal(b1_target.unsqueeze(-1),b2_target.unsqueeze(0)).to(learning_matrix.device)
-        policy=supp_dict['policy_index'].to(learning_matrix.device)
+        print(target_matrix.shape,learning_matrix.shape)
         return super().forward(cos_similarities, targets)
 
 

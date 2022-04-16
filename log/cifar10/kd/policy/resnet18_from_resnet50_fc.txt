@@ -1,21 +1,21 @@
-2022-04-16 22:20:46,411	INFO	torchdistill.common.main_util	Not using distributed mode
-2022-04-16 22:20:46,411	INFO	__main__	Namespace(adjust_lr=False, config='/home/qiuziming/product/torchdistill/configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml', device='cuda', dist_url='env://', log='log/cifar10/kd/policy/resnet18_from_resnet50_fc.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
-2022-04-16 22:20:46,425	INFO	torchdistill.datasets.util	Loading train data
-2022-04-16 22:20:46,903	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.47844815254211426 sec
-2022-04-16 22:20:46,903	INFO	torchdistill.datasets.util	Loading val data
-2022-04-16 22:20:47,303	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.3998558521270752 sec
-2022-04-16 22:20:47,303	INFO	torchdistill.datasets.util	Loading test data
-2022-04-16 22:20:47,701	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.39806342124938965 sec
-2022-04-16 22:20:47,745	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/kd/cifar10-resnet56-origin-o.pt`
-2022-04-16 22:20:49,736	INFO	__main__	Start training
-2022-04-16 22:20:49,739	INFO	torchdistill.models.util	[teacher model]
-2022-04-16 22:20:49,739	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
-2022-04-16 22:20:49,739	INFO	torchdistill.models.util	Frozen module(s): {'model'}
-2022-04-16 22:20:49,739	INFO	torchdistill.models.util	[student model]
-2022-04-16 22:20:49,739	INFO	torchdistill.models.util	Using the EmptyModule student model
-2022-04-16 22:20:49,740	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
-  (linear): Linear(in_features=128, out_features=16, bias=True)
+2022-04-16 22:43:11,746	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-04-16 22:43:11,746	INFO	__main__	Namespace(adjust_lr=False, config='/home/qiuziming/product/torchdistill/configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml', device='cuda', dist_url='env://', log='log/cifar10/kd/policy/resnet18_from_resnet50_fc.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-04-16 22:43:11,760	INFO	torchdistill.datasets.util	Loading train data
+2022-04-16 22:43:12,238	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.4779212474822998 sec
+2022-04-16 22:43:12,238	INFO	torchdistill.datasets.util	Loading val data
+2022-04-16 22:43:12,635	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.3969235420227051 sec
+2022-04-16 22:43:12,635	INFO	torchdistill.datasets.util	Loading test data
+2022-04-16 22:43:13,030	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.39516115188598633 sec
+2022-04-16 22:43:13,076	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/kd/cifar10-resnet56-origin-o.pt`
+2022-04-16 22:43:15,006	INFO	__main__	Start training
+2022-04-16 22:43:15,009	INFO	torchdistill.models.util	[teacher model]
+2022-04-16 22:43:15,009	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
+2022-04-16 22:43:15,009	INFO	torchdistill.models.util	Frozen module(s): {'model'}
+2022-04-16 22:43:15,010	INFO	torchdistill.models.util	[student model]
+2022-04-16 22:43:15,010	INFO	torchdistill.models.util	Using the EmptyModule student model
+2022-04-16 22:43:15,010	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
+  (linear): Linear(in_features=128, out_features=30, bias=True)
 )
-2022-04-16 22:20:49,740	INFO	torchdistill.core.distillation	Freezing the whole student model
-2022-04-16 22:20:49,741	INFO	torchdistill.core.distillation	Note that you are training some/all of the modules in the teacher model
-2022-04-16 22:20:49,741	INFO	torchdistill.core.distillation	Started stage 1
+2022-04-16 22:43:15,010	INFO	torchdistill.core.distillation	Freezing the whole student model
+2022-04-16 22:43:15,011	INFO	torchdistill.core.distillation	Note that you are training some/all of the modules in the teacher model
+2022-04-16 22:43:15,012	INFO	torchdistill.core.distillation	Started stage 1
