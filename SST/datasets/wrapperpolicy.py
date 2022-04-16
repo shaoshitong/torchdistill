@@ -79,9 +79,9 @@ class SubPolicy:
 
 
 @register_dataset_wrapper
-class FKDDatasetWarpper(BaseDatasetWrapper):
+class PolicyDataset(BaseDatasetWrapper):
     def __init__(self,org_dataset):
-        super(FKDDatasetWarpper, self).__init__(org_dataset)
+        super(PolicyDataset, self).__init__(org_dataset)
         self.transform=org_dataset.transform
         org_dataset.transform=None
         self.policies = [
@@ -103,12 +103,14 @@ class FKDDatasetWarpper(BaseDatasetWrapper):
         self.policies_len=len(self.policies)
 
     def __getitem__(self, index):
-        sample,target,supp_dict=super(FKDDatasetWarpper, self).__getitem__(index)
+        sample,target,supp_dict=super(PolicyDataset, self).__getitem__(index)
         policy_index=torch.zeros(self.policies_len).float()
         new_sample=sample
         for i in range(self.policies_len):
             new_sample,label=self.policies[i](new_sample)
             policy_index[i]=label
+        new_sample=self.transform(new_sample).detach()
+        sample=self.transform(sample).detach()
         supp_dict['policy_index']=torch.stack([
             torch.zeros(self.policies_len).float(),
             policy_index
