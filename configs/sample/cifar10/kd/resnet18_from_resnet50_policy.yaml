@@ -2,7 +2,7 @@ datasets:
   cifar10:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
-    root: &root_dir !join ['/data/', *dataset_name]
+    root: &root_dir !join ['/home/qiuziming/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar10_train !join [*dataset_name, '/train']
@@ -88,8 +88,8 @@ train:
           input_module: &teacherpolicy_in_module
             path: 'model.avgpool'
             io: 'output'
-          feat_dim: &teacherpolicy_feat_dim 512
-          out_dim: &teacherpolicy_out_dim 256
+          feat_dim: &teacherpolicy_feat_dim 64
+          out_dim: &teacherpolicy_out_dim 64
           freezes_policy_module: False
           policy_module_ckpt: &teacherpolicy_ckpt !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_teacher_policy_module.pt' ]
       forward_hook:

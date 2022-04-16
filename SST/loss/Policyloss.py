@@ -12,10 +12,9 @@ class AuxPolicyKDLoss(nn.CrossEntropyLoss):
         self.module_io = module_io
         self.linear=nn.Linear(feature_nums,policy_nums+2) # policy+classes+identity
 
-    def forward(self, student_io_dict, teacher_io_dict, target,supp_dict,*args, **kwargs):
+    def forward(self, student_io_dict, teacher_io_dict, target,*args, **kwargs):
         policy_module_outputs = teacher_io_dict[self.module_path][self.module_io]
-        device = policy_module_outputs.device
-        b,c,h,w = policy_module_outputs.shape
+        b,c = policy_module_outputs.shape
         assert b%2==0,"the batchsize mod 2 should be zero!"
         b1=int(b/2)
         b2=int(b/2)
@@ -23,11 +22,16 @@ class AuxPolicyKDLoss(nn.CrossEntropyLoss):
         b2_indices=torch.arange(b)%2!=0
         b1_output=policy_module_outputs[b1_indices] # original
         b2_output=policy_module_outputs[b2_indices] # augment
-        b1_target=b2_target=target
+        b,p,policy_len=target.shape
+        policy_len=policy_len-1
+        target=target.view(-1,policy_len+1)
+        b1_target=target[b1_indices]
+        b2_target=target[b2_indices]
         b1_output = b1_output.unsqueeze(-1).expand(-1,-1,b1).transpose(0,2)
         b2_output = b2_output.unsqueeze(-2).expand(-1,-1,b2)
         output_matrix=torch.cat([b1_output,b2_output],1)
         learning_matrix=self.linear(output_matrix.transpose(1,2)).transpose(1,2)
+        exit(-1)
         identity=torch.eye(b1).to(learning_matrix.device)
         classes=torch.equal(b1_target.unsqueeze(-1),b2_target.unsqueeze(0)).to(learning_matrix.device)
         policy=supp_dict['policy_index'].to(learning_matrix.device)

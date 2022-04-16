@@ -111,10 +111,13 @@ class PolicyDataset(BaseDatasetWrapper):
             policy_index[i]=label
         new_sample=self.transform(new_sample).detach()
         sample=self.transform(sample).detach()
-        supp_dict['policy_index']=torch.stack([
-            torch.zeros(self.policies_len).float(),
-            policy_index
-        ])
+        if isinstance(target,torch.Tensor) and target.ndim==2 and target.shape[-1]!=1:
+            target=target.argmax(1)
+        elif not isinstance(target,torch.Tensor):
+            target=torch.LongTensor([target])
+        target=target.unsqueeze(0).expand(2,-1) # 2,1
+        policy_target=torch.stack([torch.zeros(self.policies_len).float(),policy_index],0) # 2, policy_len
+        target=torch.cat([target,policy_target],1) # 2,policy_len+1
         sample=torch.stack([
             sample,
             new_sample,
