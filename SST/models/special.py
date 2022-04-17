@@ -56,7 +56,7 @@ class WrapperPolicy(SpecialModule):
         self.policy_module(flat_outputs)
     @torch.no_grad()
     def post_process(self, *args, **kwargs):
-        if (not self.use_ckpt) and self.is_teacher and self.policy_module.requires_grad==True:
+        if (not self.use_ckpt) and self.is_teacher and self.policy_module._modules[list(self.policy_module._modules.keys())[0]].weight.requires_grad:
             s="teacher" if self.is_teacher else "student"
             print(f"successfully save the policy {s} module!")
             save_module_ckpt(self.policy_module, self.ckpt_file_path)

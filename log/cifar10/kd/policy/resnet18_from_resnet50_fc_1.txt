@@ -1,38 +1,49 @@
-2022-04-17 21:44:48,629	INFO	torchdistill.common.main_util	Not using distributed mode
-2022-04-17 21:44:48,629	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml', device='cuda', dist_url='env://', log='log/cifar10/kd/policy/resnet18_from_resnet50_fc_1.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
-2022-04-17 21:44:48,643	INFO	torchdistill.datasets.util	Loading train data
-2022-04-17 21:44:49,168	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.5250239372253418 sec
-2022-04-17 21:44:49,168	INFO	torchdistill.datasets.util	Loading val data
-2022-04-17 21:44:49,579	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.4107964038848877 sec
-2022-04-17 21:44:49,579	INFO	torchdistill.datasets.util	Loading test data
-2022-04-17 21:44:49,990	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.41094422340393066 sec
-2022-04-17 21:44:50,035	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/kd/cifar10-resnet56-origin-o.pt`
-2022-04-17 21:44:52,576	INFO	__main__	Start training
-2022-04-17 21:44:52,578	INFO	torchdistill.models.util	[teacher model]
-2022-04-17 21:44:52,579	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
-2022-04-17 21:44:52,579	INFO	torchdistill.models.util	Frozen module(s): {'model'}
-2022-04-17 21:44:52,579	INFO	torchdistill.models.util	[student model]
-2022-04-17 21:44:52,579	INFO	torchdistill.models.util	Using the EmptyModule student model
-2022-04-17 21:44:52,579	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
+2022-04-17 21:50:54,971	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-04-17 21:50:54,971	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml', device='cuda', dist_url='env://', log='log/cifar10/kd/policy/resnet18_from_resnet50_fc_1.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-04-17 21:50:54,985	INFO	torchdistill.datasets.util	Loading train data
+2022-04-17 21:50:55,513	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.5273633003234863 sec
+2022-04-17 21:50:55,513	INFO	torchdistill.datasets.util	Loading val data
+2022-04-17 21:50:55,927	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.41405630111694336 sec
+2022-04-17 21:50:55,927	INFO	torchdistill.datasets.util	Loading test data
+2022-04-17 21:50:56,339	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.41248536109924316 sec
+2022-04-17 21:50:56,383	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/kd/cifar10-resnet56-origin-o.pt`
+2022-04-17 21:50:58,940	INFO	__main__	Start training
+2022-04-17 21:50:58,942	INFO	torchdistill.models.util	[teacher model]
+2022-04-17 21:50:58,942	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
+2022-04-17 21:50:58,942	INFO	torchdistill.models.util	Frozen module(s): {'model'}
+2022-04-17 21:50:58,942	INFO	torchdistill.models.util	[student model]
+2022-04-17 21:50:58,943	INFO	torchdistill.models.util	Using the EmptyModule student model
+2022-04-17 21:50:58,943	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
   (linear): Linear(in_features=128, out_features=16, bias=True)
   (mse): MSELoss()
 )
-2022-04-17 21:44:52,579	INFO	torchdistill.core.distillation	Freezing the whole student model
-2022-04-17 21:44:52,580	INFO	torchdistill.core.distillation	Note that you are training some/all of the modules in the teacher model
-2022-04-17 21:44:52,581	INFO	torchdistill.core.distillation	Started stage 1
-2022-04-17 21:44:53,338	INFO	torchdistill.misc.log	Epoch: [0]  [  0/782]  eta: 0:09:51  lr: 0.1  img/s: 823.4165925362421  loss: 7.1239 (7.1239)  time: 0.7561  data: 0.6782  max mem: 101
-2022-04-17 21:44:54,167	INFO	torchdistill.misc.log	Epoch: [0]  [100/782]  eta: 0:00:10  lr: 0.1  img/s: 8714.87098240374  loss: 4.7441 (5.0416)  time: 0.0083  data: 0.0001  max mem: 101
-2022-04-17 21:44:55,062	INFO	torchdistill.misc.log	Epoch: [0]  [200/782]  eta: 0:00:07  lr: 0.1  img/s: 9594.862065267898  loss: 4.7520 (4.8945)  time: 0.0091  data: 0.0001  max mem: 101
-2022-04-17 21:44:55,938	INFO	torchdistill.misc.log	Epoch: [0]  [300/782]  eta: 0:00:05  lr: 0.1  img/s: 6070.590831995296  loss: 4.6222 (4.8178)  time: 0.0087  data: 0.0001  max mem: 101
-2022-04-17 21:44:56,805	INFO	torchdistill.misc.log	Epoch: [0]  [400/782]  eta: 0:00:04  lr: 0.1  img/s: 8497.481987970878  loss: 4.7238 (4.7742)  time: 0.0077  data: 0.0001  max mem: 101
-2022-04-17 21:44:57,683	INFO	torchdistill.misc.log	Epoch: [0]  [500/782]  eta: 0:00:02  lr: 0.1  img/s: 5706.536054421768  loss: 4.6121 (4.7492)  time: 0.0092  data: 0.0001  max mem: 101
-2022-04-17 21:44:58,492	INFO	torchdistill.misc.log	Epoch: [0]  [600/782]  eta: 0:00:01  lr: 0.1  img/s: 9040.666037990031  loss: 4.6099 (4.7307)  time: 0.0087  data: 0.0001  max mem: 101
-2022-04-17 21:44:59,408	INFO	torchdistill.misc.log	Epoch: [0]  [700/782]  eta: 0:00:00  lr: 0.1  img/s: 6792.738903790678  loss: 4.5854 (4.7133)  time: 0.0101  data: 0.0001  max mem: 101
-2022-04-17 21:45:00,143	INFO	torchdistill.misc.log	Epoch: [0] Total time: 0:00:07
-2022-04-17 21:45:00,630	INFO	torchdistill.misc.log	Validation:  [  0/157]  eta: 0:01:16  acc1: 10.9375 (10.9375)  acc5: 59.3750 (59.3750)  time: 0.4849  data: 0.4690  max mem: 101
-2022-04-17 21:45:00,892	INFO	torchdistill.misc.log	Validation:  [100/157]  eta: 0:00:00  acc1: 7.8125 (9.7308)  acc5: 50.0000 (49.7989)  time: 0.0023  data: 0.0001  max mem: 101
-2022-04-17 21:45:01,097	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
-2022-04-17 21:45:01,098	INFO	__main__	 * Acc@1 10.0000	Acc@5 50.0000
+2022-04-17 21:50:58,943	INFO	torchdistill.core.distillation	Freezing the whole student model
+2022-04-17 21:50:58,944	INFO	torchdistill.core.distillation	Note that you are training some/all of the modules in the teacher model
+2022-04-17 21:50:58,944	INFO	torchdistill.core.distillation	Started stage 1
+2022-04-17 21:50:59,719	INFO	torchdistill.misc.log	Epoch: [0]  [  0/782]  eta: 0:10:05  lr: 0.1  img/s: 686.894072610774  loss: 7.7541 (7.7541)  time: 0.7742  data: 0.6807  max mem: 101
+2022-04-17 21:51:00,592	INFO	torchdistill.misc.log	Epoch: [0]  [100/782]  eta: 0:00:11  lr: 0.1  img/s: 4047.3961672421333  loss: 5.4125 (5.5258)  time: 0.0083  data: 0.0001  max mem: 101
+2022-04-17 21:51:01,408	INFO	torchdistill.misc.log	Epoch: [0]  [200/782]  eta: 0:00:07  lr: 0.1  img/s: 6433.135763414576  loss: 5.0811 (5.3375)  time: 0.0085  data: 0.0001  max mem: 101
+2022-04-17 21:51:02,269	INFO	torchdistill.misc.log	Epoch: [0]  [300/782]  eta: 0:00:05  lr: 0.1  img/s: 9580.13761598858  loss: 4.9984 (5.2364)  time: 0.0086  data: 0.0001  max mem: 101
+2022-04-17 21:51:03,068	INFO	torchdistill.misc.log	Epoch: [0]  [400/782]  eta: 0:00:03  lr: 0.1  img/s: 8680.770171070077  loss: 4.9867 (5.1832)  time: 0.0077  data: 0.0001  max mem: 101
+2022-04-17 21:51:03,916	INFO	torchdistill.misc.log	Epoch: [0]  [500/782]  eta: 0:00:02  lr: 0.1  img/s: 7454.26275304768  loss: 4.9609 (5.1503)  time: 0.0081  data: 0.0001  max mem: 101
+2022-04-17 21:51:04,743	INFO	torchdistill.misc.log	Epoch: [0]  [600/782]  eta: 0:00:01  lr: 0.1  img/s: 8124.80571445867  loss: 4.9985 (5.1210)  time: 0.0077  data: 0.0001  max mem: 101
+2022-04-17 21:51:05,600	INFO	torchdistill.misc.log	Epoch: [0]  [700/782]  eta: 0:00:00  lr: 0.1  img/s: 9319.05766360007  loss: 4.9451 (5.1007)  time: 0.0092  data: 0.0001  max mem: 101
+2022-04-17 21:51:06,334	INFO	torchdistill.misc.log	Epoch: [0] Total time: 0:00:07
+2022-04-17 21:51:06,800	INFO	torchdistill.misc.log	Validation:  [  0/157]  eta: 0:01:12  acc1: 14.0625 (14.0625)  acc5: 46.8750 (46.8750)  time: 0.4647  data: 0.4494  max mem: 101
+2022-04-17 21:51:07,069	INFO	torchdistill.misc.log	Validation:  [100/157]  eta: 0:00:00  acc1: 7.8125 (9.9783)  acc5: 50.0000 (50.9592)  time: 0.0027  data: 0.0001  max mem: 101
+2022-04-17 21:51:07,276	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-04-17 21:51:07,276	INFO	__main__	 * Acc@1 10.0000	Acc@5 50.3600
 
-2022-04-17 21:45:01,098	INFO	__main__	Best top-1 accuracy: 0.0000 -> 10.0000
-2022-04-17 21:45:01,098	INFO	__main__	Updating ckpt at None
+2022-04-17 21:51:07,277	INFO	__main__	Best top-1 accuracy: 0.0000 -> 10.0000
+2022-04-17 21:51:07,277	INFO	__main__	Updating ckpt at None
+2022-04-17 21:51:07,846	INFO	torchdistill.misc.log	Epoch: [1]  [  0/782]  eta: 0:07:23  lr: 0.1  img/s: 2778.7486516981876  loss: 5.0334 (5.0334)  time: 0.5675  data: 0.5443  max mem: 101
+2022-04-17 21:51:08,731	INFO	torchdistill.misc.log	Epoch: [1]  [100/782]  eta: 0:00:09  lr: 0.1  img/s: 5973.329535592692  loss: 4.9783 (4.9765)  time: 0.0094  data: 0.0001  max mem: 101
+2022-04-17 21:51:09,637	INFO	torchdistill.misc.log	Epoch: [1]  [200/782]  eta: 0:00:06  lr: 0.1  img/s: 9450.288892800563  loss: 4.9555 (4.9781)  time: 0.0092  data: 0.0001  max mem: 101
+2022-04-17 21:51:10,496	INFO	torchdistill.misc.log	Epoch: [1]  [300/782]  eta: 0:00:05  lr: 0.1  img/s: 8709.216014535072  loss: 5.0434 (4.9872)  time: 0.0089  data: 0.0001  max mem: 101
+2022-04-17 21:51:11,400	INFO	torchdistill.misc.log	Epoch: [1]  [400/782]  eta: 0:00:03  lr: 0.1  img/s: 8319.968261839822  loss: 4.8935 (4.9749)  time: 0.0097  data: 0.0001  max mem: 101
+2022-04-17 21:51:12,266	INFO	torchdistill.misc.log	Epoch: [1]  [500/782]  eta: 0:00:02  lr: 0.1  img/s: 8863.936600184916  loss: 5.0343 (4.9721)  time: 0.0082  data: 0.0001  max mem: 101
+2022-04-17 21:51:13,044	INFO	torchdistill.misc.log	Epoch: [1]  [600/782]  eta: 0:00:01  lr: 0.1  img/s: 7716.766975219916  loss: 4.9013 (4.9723)  time: 0.0077  data: 0.0001  max mem: 101
+2022-04-17 21:51:13,841	INFO	torchdistill.misc.log	Epoch: [1]  [700/782]  eta: 0:00:00  lr: 0.1  img/s: 6237.462961241751  loss: 4.9322 (4.9673)  time: 0.0087  data: 0.0001  max mem: 101
+2022-04-17 21:51:14,591	INFO	torchdistill.misc.log	Epoch: [1] Total time: 0:00:07
+2022-04-17 21:51:15,043	INFO	torchdistill.misc.log	Validation:  [  0/157]  eta: 0:01:10  acc1: 14.0625 (14.0625)  acc5: 46.8750 (46.8750)  time: 0.4506  data: 0.4456  max mem: 101
+2022-04-17 21:51:15,300	INFO	torchdistill.misc.log	Validation:  [100/157]  eta: 0:00:00  acc1: 7.8125 (9.9783)  acc5: 50.0000 (50.9592)  time: 0.0026  data: 0.0001  max mem: 101
