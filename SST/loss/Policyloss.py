@@ -17,6 +17,8 @@ class AuxPolicyKDLoss(nn.CrossEntropyLoss):
         else:
             self.linear=nn.Linear(feature_nums,2*(policy_nums+2)).cuda() # policy+classes+identity
         self.type=type
+        nn.init.constant_(self.linear.weight,0.001)
+        nn.init.zeros_(self.linear.bias)
         self.ckpt_file_path=ckpt_file_path
 
 
@@ -57,6 +59,7 @@ class AuxPolicyKDLoss(nn.CrossEntropyLoss):
         return loss
     @torch.no_grad()
     def save(self, *args, **kwargs):
+        # print("successfully save the linear policy module")
         save_module_ckpt(self.linear, self.ckpt_file_path)
 
 @register_single_loss
@@ -90,10 +93,12 @@ class PolicyLoss(nn.Module):
         else:
             self.linear1=nn.Linear(feature_nums,2*(policy_nums+2)).cuda() # policy+classes+identity
             self.linear2=nn.Linear(feature_nums,2*(policy_nums+2)).cuda() # policy+classes+identity
-
+        nn.init.constant_(self.linear2.weight,0.001)
+        nn.init.zeros_(self.linear2.bias)
         self.type=type
         self.ckpt_file_path=ckpt_file_path
         map_location = {'cuda:0': 'cuda:0'}
+        print("successfully load the linear policy module")
         load_module_ckpt(self.linear1,map_location,self.ckpt_file_path)
         self.linear1.weight.requires_grad=False
         self.linear1.bias.requires_grad=False

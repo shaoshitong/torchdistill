@@ -90,7 +90,7 @@ train:
         feat_dim: 64
         out_dim: 64
         freezes_policy_module: True
-        policy_module_ckpt: &teacherpolicy_ckpt !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_teacher_policy_module.pt' ]
+        policy_module_ckpt: &teacherpolicy_ckpt !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
         use_ckpt: True
     forward_hook:
       input: []
@@ -109,7 +109,7 @@ train:
         feat_dim: 64
         out_dim: 64
         freezes_policy_module: True
-        policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_student_policy_module.pt' ]
+        policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_student_policy_module.pt' ]
         use_ckpt: False
     adaptations:
     sequential: []
@@ -138,11 +138,11 @@ train:
     org_term:
       factor: 0.0
     sub_terms:
-      fk_loss:
+      policy_loss:
         criterion:
           type: 'PolicyLoss'
           params:
-            ckpt_file_path: !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
+            ckpt_file_path: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
             student_linear_module_path: 'model.fc'
             teacher_linear_module_path: 'model.fc'
             student_policy_module_path: 'policy_module'

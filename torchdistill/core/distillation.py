@@ -173,8 +173,13 @@ class DistillationBox(nn.Module):
                     trainable_module_list.append(self.teacher_model)
 
             filters_params = optim_config.get('filters_params', True)
+            if hasattr(self.criterion,'term_dict') and isinstance(self.criterion.term_dict,dict) \
+                and 'policy_loss' in self.criterion.term_dict and isinstance(self.criterion.term_dict['policy_loss'],tuple) \
+                and isinstance(self.criterion.term_dict['policy_loss'][0],nn.Module):
+                trainable_module_list.append(self.criterion.term_dict['policy_loss'][0])
             self.optimizer = \
                 get_optimizer(trainable_module_list, optim_config['type'], optim_params_config, filters_params)
+
             self.optimizer.zero_grad()
             self.max_grad_norm = optim_config.get('max_grad_norm', None)
             self.grad_accum_step = optim_config.get('grad_accum_step', 1)
@@ -338,6 +343,11 @@ class DistillationBox(nn.Module):
                 scaled_loss.backward()
         else:
             scaler.scale(loss).backward()
+        # for name,parameter in self.criterion.term_dict['policy_loss'][0].named_parameters():
+        #     if parameter.grad!=None:
+        #         print(torch.norm(parameter.grad),torch.norm(parameter.data))
+        #     else:
+        #         print(torch.norm(parameter.data))
         if self.stage_grad_count % self.grad_accum_step == 0:
             if self.max_grad_norm is not None:
                 target_params = amp.master_params(self.optimizer) if self.apex \

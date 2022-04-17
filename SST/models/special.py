@@ -38,7 +38,7 @@ class WrapperPolicy(SpecialModule):
         self.ckpt_file_path = policy_module_ckpt
         if os.path.isfile(self.ckpt_file_path) and use_ckpt:
             s="teacher" if self.is_teacher else "student"
-            print(f"successfully save the policy {s} module!")
+            print(f"successfully load the policy {s} module!")
             map_location = {'cuda:0': 'cuda:{}'.format(device_ids[0])} if distributed else device
             load_module_ckpt(policy_module, map_location, self.ckpt_file_path)
         self.use_ckpt=use_ckpt
