@@ -91,7 +91,7 @@ train:
           feat_dim: &teacherpolicy_feat_dim 64
           out_dim: &teacherpolicy_out_dim 64
           freezes_policy_module: False
-          policy_module_ckpt: &teacherpolicy_ckpt !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_teacher_policy_module.pt' ]
+          policy_module_ckpt: &teacherpolicy_ckpt !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
       forward_hook:
         input: []
         output: ['model.avgpool', 'policy_module']
@@ -129,7 +129,7 @@ train:
           criterion:
             type: 'AuxPolicyKDLoss'
             params:
-              ckpt_file_path:  &ckpt_file_path !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
+              ckpt_file_path:  &ckpt_file_path !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
               module_path: 'policy_module'
               module_io: 'output'
               reduction: 'mean'
@@ -165,7 +165,7 @@ train:
           feat_dim: *teacherpolicy_feat_dim
           out_dim: *teacherpolicy_out_dim
           freezes_policy_module: False
-          policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_student_policy_module.pt' ]
+          policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_student_policy_module.pt' ]
           use_ckpt: False
       adaptations:
       sequential: []

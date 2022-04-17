@@ -2,7 +2,7 @@ datasets:
   cifar10:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
-    root: &root_dir !join ['/home/qiuziming/data/', *dataset_name]
+    root: &root_dir !join ['/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar10_train !join [*dataset_name, '/train']
@@ -50,70 +50,142 @@ models:
       num_classes: 10
       pretrained: True
     experiment: &teacher_experiment !join [*dataset_name, '-', *teacher_model_name]
-    ckpt: !join ['./resource/ckpt/', *dataset_name, '/teacher/', *teacher_experiment, '.pt']
+    ckpt: !join ['/home/Bigdta/kd/laji/ckpt/', *dataset_name, '/teacher/', *teacher_experiment, '.pt']
   student_model:
     name: &student_model_name 'resnet20'
     params:
       num_classes: 10
       pretrained: False
     experiment: &student_experiment !join [*dataset_name, '-', *student_model_name, '_from_', *teacher_model_name]
-    ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', *student_experiment, '-final_run.pt']
+    ckpt: !join ['/home/Bigdta/kd/laji/ckpt/', *dataset_name, '/kd/', *student_experiment, '-final_run.pt']
 
 train:
   log_freq: 100
-  num_epochs: 182
-  train_data_loader:
-    dataset_id: *cifar10_train
-    random_sample: True
-    batch_size: 128
-    num_workers: 16
-    cache_output:
-  val_data_loader:
-    dataset_id: *cifar10_val
-    random_sample: False
-    batch_size: 128
-    num_workers: 16
-  teacher:
-    sequential: []
-    forward_hook:
-      input: [ ]
-      output: ['layer3']
-    wrapper: 'DistributedDataParallel'
-    requires_grad: False
-    frozen_modules: []
-  student:
-    adaptations:
-    sequential: []
-    forward_hook:
-      input: [ ]
-      output: ['layer3']
-    wrapper: 'DistributedDataParallel'
-    requires_grad: True
-    frozen_modules: []
-  apex:
-    requires: False
-    opt_level: '01'
-  optimizer:
-    type: 'SGD'
-    params:
-      lr: 0.1
-      momentum: 0.9
-      weight_decay: 0.0001
-  scheduler:
-    type: 'MultiStepLR'
-    params:
-      milestones: [91, 136]
-      gamma: 0.1
-  criterion:
-    type: 'GeneralizedCustomLoss'
-    org_term:
-      criterion:
-        type: 'KDLoss'
+  stage1:
+    num_epochs: 30
+    train_data_loader:
+      dataset_id: *cifar10_train
+      random_sample: True
+      batch_size: 64
+      num_workers: 16
+      dataset_wrapper:
+        name: 'SSKDDatasetWrapper'
+        params: { }
+    val_data_loader:
+      dataset_id: *cifar10_test
+      random_sample: False
+      batch_size: 128
+      num_workers: 16
+    teacher:
+      forward_proc: 'forward_batch4sskd'
+      sequential: [ ]
+      special:
+        type: 'SSWrapper4SSKD'
         params:
-          temperature: 4.0
-          alpha: 0.9
-          reduction: 'batchmean'
-      factor: 1.0
+          input_module: &teacher4sskd_in_module
+            path: 'model.avgpool'
+            io: 'output'
+          feat_dim: &teacher4sskd_feat_dim 64
+          freezes_ss_module: False
+          ss_module_ckpt: &teacher4sskd_ckpt !join [ '/home/Bigdata/kd/sskd/', *student_experiment, '_teacher_ss_module.pt' ]
+      forward_hook:
+        input: [ ]
+        output: [ 'model.avgpool', 'ss_module' ]
+      wrapper:
+      requires_grad: True
+      frozen_modules: [ 'model' ]
+    student:
+      adaptations:
+      special:
+        type: 'EmptyModule'
+        params:
+      sequential: [ ]
+      forward_hook:
+        input: [ ]
+        output: [ ]
+      wrapper:
+      requires_grad: False
+    apex:
+      requires: False
+      opt_level: '01'
+    optimizer:
+      type: 'SGD'
+      params:
+        lr: 0.1
+        momentum: 0.9
+        weight_decay: 0.0001
+    scheduler:
+      type: 'MultiStepLR'
+      params:
+        milestones: [ 10, 20 ]
+        gamma: 0.1
+    criterion:
+      type: 'GeneralizedCustomLoss'
+      org_term:
+        factor: 0.0
+      sub_terms:
+        aux_task:
+          criterion:
+            type: 'AuxSSKDLoss'
+            params:
+              module_path: 'ss_module'
+              module_io: 'output'
+              reduction: 'mean'
+          factor: 1.0
+  stage2:
+    num_epochs: 182
+    teacher:
+      forward_proc: 'forward_batch4sskd'
+      sequential: [ ]
+      special:
+        type: 'SSWrapper4SSKD'
+        params:
+          input_module: *teacher4sskd_in_module
+          feat_dim: *teacher4sskd_feat_dim
+          freezes_ss_module: True
+          ss_module_ckpt: *teacher4sskd_ckpt
+      forward_hook:
+        input: [ ]
+        output: [ 'model.avgpool', 'model.fc', 'ss_module' ]
+      wrapper:
+      requires_grad: False
+    student:
+      forward_proc: 'forward_batch4sskd'
+      adaptations:
+      sequential: [ ]
+      special:
+        type: 'SSWrapper4SSKD'
+        params:
+          input_module:
+            path: 'model.avgpool'
+            io: 'output'
+          feat_dim: 64
+          freezes_ss_module: False
+          ss_module_ckpt: !join [ '/home/Bigdata/kd/sskd/', *student_experiment, '_student_ss_module.pt' ]
+      forward_hook:
+        input: [ ]
+        output: [ 'model.avgpool', 'model.fc', 'ss_module' ]
+      wrapper:
+      requires_grad: True
+      frozen_modules: [ ]
+    apex:
+      requires: False
+      opt_level: '01'
+    optimizer:
+      type: 'SGD'
+      params:
+        lr: 0.1
+        momentum: 0.9
+        weight_decay: 0.0005
+    scheduler:
+      type: 'MultiStepLR'
+      params:
+        milestones: [ 30, 60, 90 ]
+        gamma: 0.1
+    criterion:
+      type: 'GeneralizedCustomLoss'
+      org_term:
+        factor: 0.0
       sub_terms:
         sskd:
           criterion:
@@ -128,12 +200,12 @@ train:
               tf_temp: 4.0
               ss_ratio: 0.75
               tf_ratio: 1.0
-              loss_weights: [1.0, 0.9, 10.0, 2.7]
+              loss_weights: [ 1.0, 0.9, 10.0, 2.7 ]
               reduction: 'batchmean'
           factor: 1.0
 test:
   test_data_loader:
     dataset_id: *cifar10_test
     random_sample: False
-    batch_size: 1
+    batch_size: 128
     num_workers: 16
