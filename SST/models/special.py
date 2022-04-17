@@ -12,7 +12,7 @@ from torchdistill.models.special import register_special_module,SpecialModule
 @register_special_module
 class WrapperPolicy(SpecialModule):
     def __init__(self, input_module, feat_dim,out_dim, policy_module_ckpt, device, device_ids, distributed, freezes_policy_module=False,
-                 teacher_model=None, student_model=None, **kwargs):
+                 teacher_model=None, student_model=None,use_ckpt=False, **kwargs):
         super().__init__()
         is_teacher = teacher_model is not None
         if not is_teacher:
@@ -28,9 +28,12 @@ class WrapperPolicy(SpecialModule):
             nn.Linear(int((feat_dim+out_dim)//2), out_dim)
         )
         self.ckpt_file_path = policy_module_ckpt
-        if os.path.isfile(self.ckpt_file_path):
+        if os.path.isfile(self.ckpt_file_path) and use_ckpt:
+            s="teacher" if self.is_teacher else "student"
+            print(f"successfully save the policy {s} module!")
             map_location = {'cuda:0': 'cuda:{}'.format(device_ids[0])} if distributed else device
             load_module_ckpt(policy_module, map_location, self.ckpt_file_path)
+        self.use_ckpt=use_ckpt
         self.policy_module = policy_module if is_teacher and freezes_policy_module \
             else wrap_if_distributed(policy_module, device, device_ids, distributed)
 
@@ -43,7 +46,10 @@ class WrapperPolicy(SpecialModule):
     def post_forward(self, io_dict):
         flat_outputs = torch.flatten(io_dict[self.input_module_path][self.input_module_io], 1)
         self.policy_module(flat_outputs)
-
+    @torch.no_grad()
     def post_process(self, *args, **kwargs):
-        save_module_ckpt(self.policy_module, self.ckpt_file_path)
+        if (not self.use_ckpt) and self.is_teacher and self.policy_module.requires_grad==True:
+            s="teacher" if self.is_teacher else "student"
+            print(f"successfully save the policy {s} module!")
+            save_module_ckpt(self.policy_module, self.ckpt_file_path)
 

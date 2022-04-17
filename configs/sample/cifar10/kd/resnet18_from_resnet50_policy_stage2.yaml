@@ -1,0 +1,164 @@
+datasets:
+  cifar10:
+    name: &dataset_name 'cifar10'
+    type: 'CIFAR10'
+    root: &root_dir !join ['/data/', *dataset_name]
+    splits:
+      train:
+        dataset_id: &cifar10_train !join [*dataset_name, '/train']
+        params:
+          root: *root_dir
+          train: True
+          download: True
+          transform_params:
+            - type: 'RandomCrop'
+              params:
+                size: 32
+                padding: 4
+            - type: 'RandomHorizontalFlip'
+              params:
+                p: 0.5
+            - type: 'ToTensor'
+              params:
+            - &normalize
+              type: 'Normalize'
+              params:
+                mean: [0.49139968, 0.48215841, 0.44653091]
+                std: [0.24703223, 0.24348513, 0.26158784]
+      val:
+        dataset_id: &cifar10_val !join [ *dataset_name, '/val' ]
+        params:
+          root: *root_dir
+          train: False
+          download: True
+          transform_params: &val_transform
+            - type: 'ToTensor'
+              params:
+            - *normalize
+      test:
+        dataset_id: &cifar10_test !join [*dataset_name, '/test']
+        params:
+          root: *root_dir
+          train: False
+          download: True
+          transform_params: *val_transform
+
+models:
+  teacher_model:
+    name: &teacher_model_name 'resnet56'
+    params:
+      num_classes: 10
+      pretrained: True
+#      repo_url: !join [ './resource/ckpt/', *dataset_name, '/kd/', 'cifar10-resnet56-origin-w', '.pt' ]
+    experiment: &teacher_experiment !join [*dataset_name, '-', *teacher_model_name]
+    ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', 'cifar10-resnet56-origin-o', '.pt']
+  student_model:
+    name: &student_model_name 'resnet20'
+    params:
+      num_classes: 10
+      pretrained: False
+    experiment: &student_experiment !join [*dataset_name, '-', *student_model_name, '_from_', *teacher_model_name]
+#    ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', *student_experiment, '-final_run.pt']
+
+
+train:
+  log_freq: 100
+  num_epochs: 182
+  train_data_loader:
+    dataset_id: *cifar10_train
+    random_sample: True
+    batch_size: 64
+    num_workers: 16
+    cache_output:
+    dataset_wrapper:
+      name: 'PolicyDataset'
+      params: { }
+  val_data_loader:
+    dataset_id: *cifar10_val
+    random_sample: False
+    batch_size: 64
+    num_workers: 16
+  teacher:
+    forward_proc: 'forward_batch_target_policy'
+    sequential: []
+    special:
+      type: 'WrapperPolicy'
+      params:
+        input_module:
+          path: 'model.avgpool'
+          io: 'output'
+        feat_dim: 64
+        out_dim: 64
+        freezes_policy_module: True
+        policy_module_ckpt: &teacherpolicy_ckpt !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_teacher_policy_module.pt' ]
+        use_ckpt: True
+    forward_hook:
+      input: []
+      output: ['model.avgpool','model.fc','policy_module']
+    wrapper:
+    requires_grad: False
+    frozen_modules: []
+  student:
+    forward_proc: 'forward_batch_target_policy'
+    special:
+      type: 'WrapperPolicy'
+      params:
+        input_module:
+          path: 'model.avgpool'
+          io: 'output'
+        feat_dim: 64
+        out_dim: 64
+        freezes_policy_module: True
+        policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_student_policy_module.pt' ]
+        use_ckpt: False
+    adaptations:
+    sequential: []
+    forward_hook:
+      input: []
+      output: ['model.avgpool','model.fc','policy_module']
+    wrapper:
+    requires_grad: True
+    frozen_modules: []
+  apex:
+    requires: False
+    opt_level: '01'
+  optimizer:
+    type: 'SGD'
+    params:
+      lr: 0.1
+      momentum: 0.9
+      weight_decay: 0.0001
+  scheduler:
+    type: 'MultiStepLR'
+    params:
+      milestones: [91, 136]
+      gamma: 0.1
+  criterion:
+    type: 'GeneralizedCustomLoss'
+    org_term:
+      factor: 0.0
+    sub_terms:
+      fk_loss:
+        criterion:
+          type: 'PolicyLoss'
+          params:
+            ckpt_file_path: !join [ '/home/Bigdata/kd/policy/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
+            student_linear_module_path: 'model.fc'
+            teacher_linear_module_path: 'model.fc'
+            student_policy_module_path: 'policy_module'
+            teacher_policy_module_path: 'policy_module'
+            kl_temp: 4.0
+            policy_temp: 0.5
+            policy_ratio: 0.75
+            feature_nums: 128
+            policy_nums: 14
+            loss_weights: [ 1.0, 0.9, 0.5,]
+            reduction: 'mean'
+            type: 'mse'
+        factor: 1
+test:
+  test_data_loader:
+    dataset_id: *cifar10_test
+    random_sample: False
+    batch_size: 128
+    num_workers: 16
