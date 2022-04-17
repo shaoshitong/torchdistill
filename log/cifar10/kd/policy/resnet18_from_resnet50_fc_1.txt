@@ -1,0 +1,20 @@
+2022-04-17 21:43:59,339	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-04-17 21:43:59,339	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml', device='cuda', dist_url='env://', log='log/cifar10/kd/policy/resnet18_from_resnet50_fc_1.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-04-17 21:43:59,353	INFO	torchdistill.datasets.util	Loading train data
+2022-04-17 21:43:59,891	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.5374019145965576 sec
+2022-04-17 21:43:59,891	INFO	torchdistill.datasets.util	Loading val data
+2022-04-17 21:44:00,309	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.4176945686340332 sec
+2022-04-17 21:44:00,309	INFO	torchdistill.datasets.util	Loading test data
+2022-04-17 21:44:00,719	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.41049766540527344 sec
+2022-04-17 21:44:00,766	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/kd/cifar10-resnet56-origin-o.pt`
+2022-04-17 21:44:03,310	INFO	__main__	Start training
+2022-04-17 21:44:03,312	INFO	torchdistill.models.util	[teacher model]
+2022-04-17 21:44:03,312	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
+2022-04-17 21:44:03,312	INFO	torchdistill.models.util	Frozen module(s): {'model'}
+2022-04-17 21:44:03,313	INFO	torchdistill.models.util	[student model]
+2022-04-17 21:44:03,313	INFO	torchdistill.models.util	Using the EmptyModule student model
+2022-04-17 21:44:03,313	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
+  (linear): Linear(in_features=128, out_features=16, bias=True)
+  (mse): MSELoss()
+)
+2022-04-17 21:44:03,313	INFO	torchdistill.core.distillation	Freezing the whole student model

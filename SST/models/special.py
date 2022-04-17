@@ -9,6 +9,13 @@ from torch.jit.annotations import Tuple, List
 from torchdistill.common.constant import def_logger
 from torchdistill.models.util import wrap_if_distributed, load_module_ckpt, save_module_ckpt, redesign_model
 from torchdistill.models.special import register_special_module,SpecialModule
+from torch.nn.functional import normalize
+class Lambda(nn.Module):
+    def __init__(self,lambda_function):
+        super(Lambda, self).__init__()
+        self.lambda_function=lambda_function
+    def forward(self,x,*args,**kwargs):
+        return self.lambda_function(x,args,kwargs)
 @register_special_module
 class WrapperPolicy(SpecialModule):
     def __init__(self, input_module, feat_dim,out_dim, policy_module_ckpt, device, device_ids, distributed, freezes_policy_module=False,
@@ -25,7 +32,8 @@ class WrapperPolicy(SpecialModule):
         policy_module = nn.Sequential(
             nn.Linear(feat_dim, int((feat_dim+out_dim)//2)),
             nn.ReLU(inplace=True),
-            nn.Linear(int((feat_dim+out_dim)//2), out_dim)
+            nn.Linear(int((feat_dim+out_dim)//2), out_dim),
+            Lambda(lambda x:normalize(x,dim=1))
         )
         self.ckpt_file_path = policy_module_ckpt
         if os.path.isfile(self.ckpt_file_path) and use_ckpt:
