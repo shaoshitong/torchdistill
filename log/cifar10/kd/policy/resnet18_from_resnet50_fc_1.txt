@@ -1,20 +1,38 @@
-2022-04-17 21:43:59,339	INFO	torchdistill.common.main_util	Not using distributed mode
-2022-04-17 21:43:59,339	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml', device='cuda', dist_url='env://', log='log/cifar10/kd/policy/resnet18_from_resnet50_fc_1.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
-2022-04-17 21:43:59,353	INFO	torchdistill.datasets.util	Loading train data
-2022-04-17 21:43:59,891	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.5374019145965576 sec
-2022-04-17 21:43:59,891	INFO	torchdistill.datasets.util	Loading val data
-2022-04-17 21:44:00,309	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.4176945686340332 sec
-2022-04-17 21:44:00,309	INFO	torchdistill.datasets.util	Loading test data
-2022-04-17 21:44:00,719	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.41049766540527344 sec
-2022-04-17 21:44:00,766	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/kd/cifar10-resnet56-origin-o.pt`
-2022-04-17 21:44:03,310	INFO	__main__	Start training
-2022-04-17 21:44:03,312	INFO	torchdistill.models.util	[teacher model]
-2022-04-17 21:44:03,312	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
-2022-04-17 21:44:03,312	INFO	torchdistill.models.util	Frozen module(s): {'model'}
-2022-04-17 21:44:03,313	INFO	torchdistill.models.util	[student model]
-2022-04-17 21:44:03,313	INFO	torchdistill.models.util	Using the EmptyModule student model
-2022-04-17 21:44:03,313	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
+2022-04-17 21:44:48,629	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-04-17 21:44:48,629	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml', device='cuda', dist_url='env://', log='log/cifar10/kd/policy/resnet18_from_resnet50_fc_1.txt', log_config=False, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-04-17 21:44:48,643	INFO	torchdistill.datasets.util	Loading train data
+2022-04-17 21:44:49,168	INFO	torchdistill.datasets.util	dataset_id `cifar10/train`: 0.5250239372253418 sec
+2022-04-17 21:44:49,168	INFO	torchdistill.datasets.util	Loading val data
+2022-04-17 21:44:49,579	INFO	torchdistill.datasets.util	dataset_id `cifar10/val`: 0.4107964038848877 sec
+2022-04-17 21:44:49,579	INFO	torchdistill.datasets.util	Loading test data
+2022-04-17 21:44:49,990	INFO	torchdistill.datasets.util	dataset_id `cifar10/test`: 0.41094422340393066 sec
+2022-04-17 21:44:50,035	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar10/kd/cifar10-resnet56-origin-o.pt`
+2022-04-17 21:44:52,576	INFO	__main__	Start training
+2022-04-17 21:44:52,578	INFO	torchdistill.models.util	[teacher model]
+2022-04-17 21:44:52,579	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
+2022-04-17 21:44:52,579	INFO	torchdistill.models.util	Frozen module(s): {'model'}
+2022-04-17 21:44:52,579	INFO	torchdistill.models.util	[student model]
+2022-04-17 21:44:52,579	INFO	torchdistill.models.util	Using the EmptyModule student model
+2022-04-17 21:44:52,579	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
   (linear): Linear(in_features=128, out_features=16, bias=True)
   (mse): MSELoss()
 )
-2022-04-17 21:44:03,313	INFO	torchdistill.core.distillation	Freezing the whole student model
+2022-04-17 21:44:52,579	INFO	torchdistill.core.distillation	Freezing the whole student model
+2022-04-17 21:44:52,580	INFO	torchdistill.core.distillation	Note that you are training some/all of the modules in the teacher model
+2022-04-17 21:44:52,581	INFO	torchdistill.core.distillation	Started stage 1
+2022-04-17 21:44:53,338	INFO	torchdistill.misc.log	Epoch: [0]  [  0/782]  eta: 0:09:51  lr: 0.1  img/s: 823.4165925362421  loss: 7.1239 (7.1239)  time: 0.7561  data: 0.6782  max mem: 101
+2022-04-17 21:44:54,167	INFO	torchdistill.misc.log	Epoch: [0]  [100/782]  eta: 0:00:10  lr: 0.1  img/s: 8714.87098240374  loss: 4.7441 (5.0416)  time: 0.0083  data: 0.0001  max mem: 101
+2022-04-17 21:44:55,062	INFO	torchdistill.misc.log	Epoch: [0]  [200/782]  eta: 0:00:07  lr: 0.1  img/s: 9594.862065267898  loss: 4.7520 (4.8945)  time: 0.0091  data: 0.0001  max mem: 101
+2022-04-17 21:44:55,938	INFO	torchdistill.misc.log	Epoch: [0]  [300/782]  eta: 0:00:05  lr: 0.1  img/s: 6070.590831995296  loss: 4.6222 (4.8178)  time: 0.0087  data: 0.0001  max mem: 101
+2022-04-17 21:44:56,805	INFO	torchdistill.misc.log	Epoch: [0]  [400/782]  eta: 0:00:04  lr: 0.1  img/s: 8497.481987970878  loss: 4.7238 (4.7742)  time: 0.0077  data: 0.0001  max mem: 101
+2022-04-17 21:44:57,683	INFO	torchdistill.misc.log	Epoch: [0]  [500/782]  eta: 0:00:02  lr: 0.1  img/s: 5706.536054421768  loss: 4.6121 (4.7492)  time: 0.0092  data: 0.0001  max mem: 101
+2022-04-17 21:44:58,492	INFO	torchdistill.misc.log	Epoch: [0]  [600/782]  eta: 0:00:01  lr: 0.1  img/s: 9040.666037990031  loss: 4.6099 (4.7307)  time: 0.0087  data: 0.0001  max mem: 101
+2022-04-17 21:44:59,408	INFO	torchdistill.misc.log	Epoch: [0]  [700/782]  eta: 0:00:00  lr: 0.1  img/s: 6792.738903790678  loss: 4.5854 (4.7133)  time: 0.0101  data: 0.0001  max mem: 101
+2022-04-17 21:45:00,143	INFO	torchdistill.misc.log	Epoch: [0] Total time: 0:00:07
+2022-04-17 21:45:00,630	INFO	torchdistill.misc.log	Validation:  [  0/157]  eta: 0:01:16  acc1: 10.9375 (10.9375)  acc5: 59.3750 (59.3750)  time: 0.4849  data: 0.4690  max mem: 101
+2022-04-17 21:45:00,892	INFO	torchdistill.misc.log	Validation:  [100/157]  eta: 0:00:00  acc1: 7.8125 (9.7308)  acc5: 50.0000 (49.7989)  time: 0.0023  data: 0.0001  max mem: 101
+2022-04-17 21:45:01,097	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-04-17 21:45:01,098	INFO	__main__	 * Acc@1 10.0000	Acc@5 50.0000
+
+2022-04-17 21:45:01,098	INFO	__main__	Best top-1 accuracy: 0.0000 -> 10.0000
+2022-04-17 21:45:01,098	INFO	__main__	Updating ckpt at None

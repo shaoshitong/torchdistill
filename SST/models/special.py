@@ -15,7 +15,7 @@ class Lambda(nn.Module):
         super(Lambda, self).__init__()
         self.lambda_function=lambda_function
     def forward(self,x,*args,**kwargs):
-        return self.lambda_function(x,args,kwargs)
+        return self.lambda_function(x,*args,**kwargs)
 @register_special_module
 class WrapperPolicy(SpecialModule):
     def __init__(self, input_module, feat_dim,out_dim, policy_module_ckpt, device, device_ids, distributed, freezes_policy_module=False,
