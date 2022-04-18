@@ -36,7 +36,7 @@ def get_argparser():
     parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy_stage2.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/policy/resnet18_from_resnet50_1.0_0.9_0.5_freeze_student_2.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/policy/resnet18_from_resnet50_1.0_0.9_0.5_ema.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
@@ -47,7 +47,7 @@ def get_argparser():
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
     parser.add_argument('-adjust_lr', action='store_true',
                         help='multiply learning rate by number of distributed processes (world_size)')
-    parser.add_argument('--ema', default=False,type=bool,
+    parser.add_argument('--ema', default=True,type=bool,
                         help='if use ema')
     return parser
 
@@ -131,6 +131,7 @@ def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, de
         best_val_top1_accuracy, _, _ = load_ckpt(ckpt_file_path, optimizer=optimizer, lr_scheduler=lr_scheduler)
     ema=args.ema
     if ema and hasattr(training_box.criterion.term_dict['policy_loss'][0],'linear2'):
+        print("ems is true")
         PEMA=EMA([training_box.teacher_model.policy_module,training_box.criterion.term_dict['policy_loss'][0].linear1],[training_box.student_model.policy_module,training_box.criterion.term_dict['policy_loss'][0].linear2])
     else:
         PEMA=None

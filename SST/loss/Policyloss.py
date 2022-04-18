@@ -101,7 +101,9 @@ class PolicyLoss(nn.Module):
         self.linear1.weight.requires_grad=False
         self.linear1.bias.requires_grad=False
         if freeze_student:
-            load_module_ckpt(self.linear2,map_location,self.ckpt_file_path)
+            # load_module_ckpt(self.linear2,map_location,self.ckpt_file_path)
+            nn.init.constant_(self.linear2.weight, 0.001)
+            nn.init.zeros_(self.linear2.bias)
             self.linear2.weight.requires_grad=False
             self.linear2.bias.requires_grad=False
         else:
