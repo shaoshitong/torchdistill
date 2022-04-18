@@ -72,6 +72,7 @@ class PolicyLoss(nn.Module):
                  loss_weights=None, reduction='mean',type='mse',freeze_student=False, **kwargs):
         super().__init__()
         self.loss_weights = [1.0, 1.0, 1.0] if loss_weights is None else loss_weights
+        print("loss weight is",self.loss_weights)
         self.kl_temp = kl_temp
         self.policy_temp = policy_temp
         self.policy_ratio = policy_ratio
