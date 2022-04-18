@@ -12,9 +12,45 @@ from torchvision import datasets, transforms
 from PIL import Image, ImageEnhance, ImageOps
 from torch.utils.data import Dataset
 from torchdistill.datasets.wrapper import register_dataset_wrapper,BaseDatasetWrapper
+
+
+def rotate_with_fill(img, magnitude):
+    rot = img.convert('RGBA').rotate(magnitude)
+    return Image.composite(rot, Image.new('RGBA', rot.size, (128,) * 4), rot).convert(img.mode)
+
+def shearX(img,magnitude,fillcolor):
+    return img.transform(img.size, Image.AFFINE, (1, magnitude * random.choice([-1, 1]), 0, 0, 1, 0),Image.BICUBIC, fillcolor=fillcolor)
+def shearY(img,magnitude,fillcolor):
+    return img.transform(img.size, Image.AFFINE, (1, 0, 0, magnitude * random.choice([-1, 1]), 1, 0),Image.BICUBIC, fillcolor=fillcolor)
+def translateX(img,magnitude,fillcolor):
+    return img.transform( img.size, Image.AFFINE, (1, 0, magnitude * img.size[0] * random.choice([-1, 1]), 0, 1, 0),fillcolor=fillcolor)
+def translateY(img,magnitude,fillcolor):
+    return img.transform(img.size, Image.AFFINE, (1, 0, 0, 0, 1, magnitude * img.size[1] * random.choice([-1, 1])),fillcolor=fillcolor)
+def rotate(img,magnitude,fillcolor):
+    return rotate_with_fill(img, magnitude)
+def color(img,magnitude,fillcolor):
+    return ImageEnhance.Color(img).enhance(1 + magnitude * random.choice([-1, 1]))
+def posterize(img,magnitude,fillcolor):
+    return ImageOps.posterize(img, magnitude)
+def solarize(img,magnitude,fillcolor):
+    return ImageOps.solarize(img, magnitude)
+def contrast(img,magnitude,fillcolor):
+    return ImageEnhance.Contrast(img).enhance(1 + magnitude * random.choice([-1, 1]))
+def sharpness(img,magnitude,fillcolor):
+    return ImageEnhance.Sharpness(img).enhance(1 + magnitude * random.choice([-1, 1]))
+def brightness(img,magnitude,fillcolor):
+    return ImageEnhance.Brightness(img).enhance(1 + magnitude * random.choice([-1, 1]))
+def autocontrast(img,magnitude,fillcolor):
+    return ImageOps.autocontrast(img)
+def equalize(img,magnitude,fillcolor):
+    return ImageOps.equalize(img)
+def invert(img,magnitude,fillcolor):
+    return ImageOps.invert(img)
+
 class SubPolicy:
 
     def __init__(self, p1, operation1, magnitude_idx1, fillcolor=(128, 128, 128)):
+        self.fillcolor=fillcolor
         ranges = {
             'shearX': np.linspace(0, 0.3, 10),
             'shearY': np.linspace(0, 0.3, 10),
@@ -32,36 +68,22 @@ class SubPolicy:
             'invert': [0] * 10
         }
 
-        def rotate_with_fill(img, magnitude):
-            rot = img.convert('RGBA').rotate(magnitude)
-            return Image.composite(rot, Image.new('RGBA', rot.size, (128,) * 4), rot).convert(img.mode)
 
         func = {
-            'shearX': lambda img, magnitude: img.transform(
-                img.size, Image.AFFINE, (1, magnitude * random.choice([-1, 1]), 0, 0, 1, 0),
-                Image.BICUBIC, fillcolor=fillcolor),
-            'shearY': lambda img, magnitude: img.transform(
-                img.size, Image.AFFINE, (1, 0, 0, magnitude * random.choice([-1, 1]), 1, 0),
-                Image.BICUBIC, fillcolor=fillcolor),
-            'translateX': lambda img, magnitude: img.transform(
-                img.size, Image.AFFINE, (1, 0, magnitude * img.size[0] * random.choice([-1, 1]), 0, 1, 0),
-                fillcolor=fillcolor),
-            'translateY': lambda img, magnitude: img.transform(
-                img.size, Image.AFFINE, (1, 0, 0, 0, 1, magnitude * img.size[1] * random.choice([-1, 1])),
-                fillcolor=fillcolor),
-            'rotate': lambda img, magnitude: rotate_with_fill(img, magnitude),
-            'color': lambda img, magnitude: ImageEnhance.Color(img).enhance(1 + magnitude * random.choice([-1, 1])),
-            'posterize': lambda img, magnitude: ImageOps.posterize(img, magnitude),
-            'solarize': lambda img, magnitude: ImageOps.solarize(img, magnitude),
-            'contrast': lambda img, magnitude: ImageEnhance.Contrast(img).enhance(
-                1 + magnitude * random.choice([-1, 1])),
-            'sharpness': lambda img, magnitude: ImageEnhance.Sharpness(img).enhance(
-                1 + magnitude * random.choice([-1, 1])),
-            'brightness': lambda img, magnitude: ImageEnhance.Brightness(img).enhance(
-                1 + magnitude * random.choice([-1, 1])),
-            'autocontrast': lambda img, magnitude: ImageOps.autocontrast(img),
-            'equalize': lambda img, magnitude: ImageOps.equalize(img),
-            'invert': lambda img, magnitude: ImageOps.invert(img)
+            'shearX': shearX,
+            'shearY': shearY,
+            'translateX': translateX,
+            'translateY': translateY,
+            'rotate': rotate,
+            'color': color,
+            'posterize': posterize,
+            'solarize': solarize,
+            'contrast': contrast,
+            'sharpness': sharpness,
+            'brightness': brightness,
+            'autocontrast': autocontrast,
+            'equalize': equalize,
+            'invert': invert
         }
 
         self.p1 = p1
@@ -71,7 +93,7 @@ class SubPolicy:
     def __call__(self, img):
         label=0
         if random.random() < self.p1:
-            img = self.operation1(img, self.magnitude1)
+            img = self.operation1(img, self.magnitude1,self.fillcolor)
             label=1
         return img,label
 
