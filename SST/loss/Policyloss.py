@@ -69,7 +69,7 @@ class PolicyLoss(nn.Module):
                  feature_nums=128, policy_nums=7,
                  student_linear_module_io='output', teacher_linear_module_io='output',
                  student_policy_module_io='output', teacher_policy_module_io='output',
-                 loss_weights=None, reduction='mean',type='mse', **kwargs):
+                 loss_weights=None, reduction='mean',type='mse',freeze_student=False, **kwargs):
         super().__init__()
         self.loss_weights = [1.0, 1.0, 1.0] if loss_weights is None else loss_weights
         self.kl_temp = kl_temp
@@ -93,8 +93,6 @@ class PolicyLoss(nn.Module):
         else:
             self.linear1=nn.Linear(feature_nums,2*(policy_nums+2)).cuda() # policy+classes+identity
             self.linear2=nn.Linear(feature_nums,2*(policy_nums+2)).cuda() # policy+classes+identity
-        nn.init.constant_(self.linear2.weight,0.001)
-        nn.init.zeros_(self.linear2.bias)
         self.type=type
         self.ckpt_file_path=ckpt_file_path
         map_location = {'cuda:0': 'cuda:0'}
@@ -102,8 +100,13 @@ class PolicyLoss(nn.Module):
         load_module_ckpt(self.linear1,map_location,self.ckpt_file_path)
         self.linear1.weight.requires_grad=False
         self.linear1.bias.requires_grad=False
-
-
+        if freeze_student:
+            load_module_ckpt(self.linear2,map_location,self.ckpt_file_path)
+            self.linear2.weight.requires_grad=False
+            self.linear2.bias.requires_grad=False
+        else:
+            nn.init.constant_(self.linear2.weight, 0.001)
+            nn.init.zeros_(self.linear2.bias)
     def policy_loss(self,teacher_output,student_output,targets,b1_indices,b2_indices,b1,b2):
         student_b1_output=student_output[b1_indices]
         student_b2_output=student_output[b2_indices]

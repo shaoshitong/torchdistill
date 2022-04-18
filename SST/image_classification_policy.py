@@ -20,6 +20,7 @@ from torchdistill.eval.classification import compute_accuracy
 from torchdistill.misc.log import setup_log_file, SmoothedValue, MetricLogger
 from torchdistill.models.official import get_image_classification_model
 from torchdistill.models.registry import get_model
+from SST.utils.EMA import EMA
 import SST.core.forward_proc
 import SST.loss.Policyloss
 import SST.loss.utils
@@ -32,10 +33,10 @@ logger = def_logger.getChild(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml',help='yaml file path')
+    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy_stage2.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/policy/resnet18_from_resnet50_fc_1.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/policy/resnet18_from_resnet50_1.0_0.9_0.5_freeze_student_2.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
@@ -46,6 +47,8 @@ def get_argparser():
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
     parser.add_argument('-adjust_lr', action='store_true',
                         help='multiply learning rate by number of distributed processes (world_size)')
+    parser.add_argument('--ema', default=False,type=bool,
+                        help='if use ema')
     return parser
 
 
@@ -60,7 +63,7 @@ def load_model(model_config, device, distributed):
     return model.to(device)
 
 
-def train_one_epoch(training_box, device, epoch, log_freq):
+def train_one_epoch(training_box, device, epoch, log_freq,ema,PEMA):
     metric_logger = MetricLogger(delimiter='  ')
     metric_logger.add_meter('lr', SmoothedValue(window_size=1, fmt='{value}'))
     metric_logger.add_meter('img/s', SmoothedValue(window_size=10, fmt='{value}'))
@@ -71,6 +74,10 @@ def train_one_epoch(training_box, device, epoch, log_freq):
         sample_batch, targets = sample_batch.to(device), targets.to(device)
         loss = training_box(sample_batch, targets, supp_dict)
         training_box.update_params(loss)
+        if ema and hasattr(training_box.criterion.term_dict['policy_loss'][0], 'linear2'):
+            PEMA.step()
+        else:
+            pass
         batch_size = sample_batch.shape[0]
         metric_logger.update(loss=loss.item(), lr=training_box.optimizer.param_groups[0]['lr'])
         metric_logger.meters['img/s'].update(batch_size / (time.time() - start_time))
@@ -122,13 +129,17 @@ def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, de
     optimizer, lr_scheduler = training_box.optimizer, training_box.lr_scheduler
     if file_util.check_if_exists(ckpt_file_path):
         best_val_top1_accuracy, _, _ = load_ckpt(ckpt_file_path, optimizer=optimizer, lr_scheduler=lr_scheduler)
-
+    ema=args.ema
+    if ema and hasattr(training_box.criterion.term_dict['policy_loss'][0],'linear2'):
+        PEMA=EMA([training_box.teacher_model.policy_module,training_box.criterion.term_dict['policy_loss'][0].linear1],[training_box.student_model.policy_module,training_box.criterion.term_dict['policy_loss'][0].linear2])
+    else:
+        PEMA=None
     log_freq = train_config['log_freq']
     student_model_without_ddp = student_model.module if module_util.check_if_wrapped(student_model) else student_model
     start_time = time.time()
     for epoch in range(args.start_epoch, training_box.num_epochs):
         training_box.pre_process(epoch=epoch)
-        train_one_epoch(training_box, device, epoch, log_freq)
+        train_one_epoch(training_box, device, epoch, log_freq,ema,PEMA)
         val_top1_accuracy = evaluate(student_model, training_box.val_data_loader, device, device_ids, distributed,
                                      log_freq=log_freq, header='Validation:')
         if val_top1_accuracy > best_val_top1_accuracy and is_main_process():
