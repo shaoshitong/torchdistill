@@ -5,11 +5,11 @@ from torch.nn.functional import adaptive_avg_pool2d, adaptive_max_pool2d, normal
 from torchdistill.losses.single import register_single_loss
 import einops
 @register_single_loss
-class AuxPolicyKDLoss(nn.CrossEntropyLoss):
+class AuxPolicyKDLoss(nn.Module):
     def __init__(self, module_path='policy_module', module_io='output', reduction='mean',feature_nums=128,policy_nums=7,
                  type="mse",ckpt_file_path="policy_linear.pth",p_loss_weight=[1.0,0.5,0.001],
                  p_t=5,**kwargs):
-        super().__init__(reduction=reduction, **kwargs)
+        super().__init__()
         self.module_path = module_path
         self.module_io = module_io
         if type=="mse":
