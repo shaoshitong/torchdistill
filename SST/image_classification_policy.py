@@ -2,7 +2,7 @@ import argparse
 import datetime
 import os,sys
 import time
-os.chdir('/home/sst/product/torchdistill')
+os.chdir('/home/qiuziming/product/torchdistill')
 root=os.getcwd()
 sys.path.append(root)
 import torch
@@ -36,7 +36,7 @@ def get_argparser():
     parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/policy2/resnet18_from_resnet50.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/policy3/resnet18_from_resnet50_.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
@@ -49,6 +49,7 @@ def get_argparser():
                         help='multiply learning rate by number of distributed processes (world_size)')
     parser.add_argument('--ema', default=False,type=bool,
                         help='if use ema')
+    parser.add_argument('--p_weight_loss',nargs='+',default=None,type=float)
     return parser
 
 
@@ -120,6 +121,7 @@ def evaluate(model, data_loader, device, device_ids, distributed, log_freq=1000,
 def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, device_ids, distributed, config, args):
     logger.info('Start training')
     train_config = config['train']
+
     lr_factor = args.world_size if distributed and args.adjust_lr else 1
     training_box = get_training_box(student_model, dataset_dict, train_config,
                                     device, device_ids, distributed, lr_factor) if teacher_model is None \
@@ -161,16 +163,19 @@ def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, de
 
 
 def main(args):
-    log_file_path = args.log
+    weight_loss=args.p_weight_loss
+    print("args p weight loss is",weight_loss)
+    log_file_path = args.log.split('.txt')[0] + str(weight_loss[0]) + "_" + str(weight_loss[1]) + "_" + str(
+        weight_loss[2]) + ".txt"
     if is_main_process() and log_file_path is not None:
         setup_log_file(os.path.expanduser(log_file_path))
-
     distributed, device_ids = init_distributed_mode(args.world_size, args.dist_url)
     logger.info(args)
     cudnn.benchmark = True
     set_seed(args.seed)
     config = yaml_util.load_yaml_file(os.path.expanduser(args.config))
     device = torch.device(args.device)
+    config['train']['stage2']['criterion']['sub_terms']['policy_loss']['criterion']['params']['p_loss_weight'] = weight_loss
     dataset_dict = util.get_all_datasets(config['datasets'])
     models_config = config['models']
     teacher_model_config = models_config.get('teacher_model', None)

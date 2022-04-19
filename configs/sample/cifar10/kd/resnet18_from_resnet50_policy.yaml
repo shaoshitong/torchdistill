@@ -2,7 +2,7 @@ datasets:
   cifar10:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
-    root: &root_dir !join ['/data/', *dataset_name]
+    root: &root_dir !join ['/home/qiuziming/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar10_train !join [*dataset_name, '/train']
