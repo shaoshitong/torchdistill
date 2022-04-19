@@ -118,7 +118,7 @@ train:
       output: ['model.avgpool','model.fc','policy_module']
     wrapper:
     requires_grad: True
-    frozen_modules: []
+    frozen_modules: ['policy_module']
   apex:
     requires: False
     opt_level: '01'
@@ -155,7 +155,7 @@ train:
             loss_weights: [ 1.0, 0.9, 0.5,]
             reduction: 'mean'
             type: 'mse'
-            freeze_student: False
+            freeze_student: True
         factor: 1
 test:
   test_data_loader:

@@ -117,6 +117,7 @@ class PolicyLoss(nn.Module):
         student_b2_output = student_b2_output.unsqueeze(-1).expand(-1, -1, b2)
         student_output_matrix = torch.cat([student_b1_output, student_b2_output], 1)
         student_learning_matrix = self.linear2(student_output_matrix.transpose(1, 2)).transpose(1, 2)
+        print(student_learning_matrix[:2,:,:2])
         with torch.no_grad():
             teacher_b1_output = teacher_output[b1_indices]
             teacher_b2_output = teacher_output[b2_indices]
