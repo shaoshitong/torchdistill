@@ -22,8 +22,8 @@ class AuxPolicyKDLoss(nn.Module):
         self.type=type
         self.p_loss_weight=p_loss_weight
         self.p_t=p_t
-        nn.init.trunc_normal_(self.linear.weight,0,0.001)
-        nn.init.zeros_(self.linear.bias)
+        # nn.init.trunc_normal_(self.linear.weight,0,0.001)
+        # nn.init.zeros_(self.linear.bias)
         self.ckpt_file_path=ckpt_file_path
     def forward(self, student_io_dict, teacher_io_dict, target,*args, **kwargs):
         policy_module_outputs = teacher_io_dict[self.module_path][self.module_io]
@@ -42,25 +42,25 @@ class AuxPolicyKDLoss(nn.Module):
         b1_target=b1_target.unsqueeze(-1).expand(-1,-1,b1).transpose(0,2)
         b2_target=b2_target.unsqueeze(-1).expand(-1,-1,b2)
         target_matrix=(b1_target==b2_target).float()
-        target_matrix_classes=einops.rearrange(target_matrix[:,0,:],"a c -> (a c)").unsqueeze(-1)
+        target_matrix_classes=target_matrix[:,0,:]
         target_matrix_policy=einops.rearrange(target_matrix[:,1:,:],"a b c -> (a c) b")
-        target_matrix_identity=einops.rearrange(torch.eye(target_matrix.shape[0]).to(target_matrix.device).unsqueeze(1),"a b c -> (a c) b")
+        target_matrix_identity=torch.eye(target_matrix.shape[0]).to(target_matrix.device)
         if self.type=="mse":
             b1_output = b1_output.unsqueeze(-1).expand(-1, -1, b1).transpose(0, 2)
             b2_output = b2_output.unsqueeze(-1).expand(-1, -1, b2)
             output_matrix = torch.cat([b1_output, b2_output], 1)
             learning_matrix = self.linear(output_matrix.transpose(1, 2)).transpose(1, 2)
-            learning_matrix_identity=einops.rearrange(learning_matrix[:,0,:],"a c -> (a c)").unsqueeze(-1)
-            learning_matrix_classes=einops.rearrange(learning_matrix[:,1,:],"a c -> (a c)").unsqueeze(-1)
+            learning_matrix_identity=learning_matrix[:,0,:]
+            learning_matrix_classes=learning_matrix[:,1,:]
             learning_matrix_policy=einops.rearrange(learning_matrix[:,2:,:],"a b c -> (a c) b")
-            identity_loss=self.bce(learning_matrix_identity,target_matrix_identity)
-            classes_loss=self.bce(learning_matrix_classes,target_matrix_classes)
+            print(learning_matrix_classes[0,:],learning_matrix_identity[0,:],learning_matrix_policy[0,:])
+            identity_loss=self.kl(torch.log_softmax(learning_matrix_identity,1),torch.softmax(target_matrix_identity,1))
+            classes_loss=self.kl(torch.log_softmax(learning_matrix_classes,1),torch.softmax(target_matrix_classes,1))
             policy_loss = self.mse(learning_matrix_policy,target_matrix_policy)
         else:
             raise NotImplementedError
         self.save()
         total_loss=0.
-        print([identity_loss,classes_loss,policy_loss],self.linear.weight.data[5:7,:2])
         for weight,loss in zip(self.p_loss_weight,[identity_loss,classes_loss,policy_loss]):
             total_loss+=(weight*loss)
         return total_loss
@@ -116,14 +116,15 @@ class PolicyLoss(nn.Module):
         self.linear1.weight.requires_grad=False
         self.linear1.bias.requires_grad=False
         if freeze_student:
-            # load_module_ckpt(self.linear2,map_location,self.ckpt_file_path)
-            nn.init.trunc_normal_(self.linear2.weight, 0, 0.001)
-            nn.init.zeros_(self.linear2.bias)
+            load_module_ckpt(self.linear2,map_location,self.ckpt_file_path)
+            # nn.init.trunc_normal_(self.linear2.weight, 0, 0.001)
+            # nn.init.zeros_(self.linear2.bias)
             self.linear2.weight.requires_grad=False
             self.linear2.bias.requires_grad=False
         else:
-            nn.init.trunc_normal_(self.linear2.weight, 0, 0.001)
-            nn.init.zeros_(self.linear2.bias)
+            # nn.init.trunc_normal_(self.linear2.weight, 0, 0.001)
+            # nn.init.zeros_(self.linear2.bias)
+            pass
     def policy_loss(self,teacher_output,student_output,targets,b1_indices,b2_indices,b1,b2):
         student_b1_output=student_output[b1_indices]
         student_b2_output=student_output[b2_indices]
@@ -131,8 +132,8 @@ class PolicyLoss(nn.Module):
         student_b2_output = student_b2_output.unsqueeze(-1).expand(-1, -1, b2)
         student_output_matrix = torch.cat([student_b1_output, student_b2_output], 1)
         student_learning_matrix = self.linear2(student_output_matrix.transpose(1, 2)).transpose(1, 2)
-        student_matrix_identity = einops.rearrange(student_learning_matrix[:, 0, :], "a c -> (a c)").unsqueeze(-1)
-        student_matrix_classes = einops.rearrange(student_learning_matrix[:, 1, :], "a c -> (a c)").unsqueeze(-1)
+        student_matrix_identity = student_learning_matrix[:, 0, :]
+        student_matrix_classes =  student_learning_matrix[:, 1, :]
         student_matrix_policy = einops.rearrange(student_learning_matrix[:, 2:, :], "a b c -> (a c) b")
         with torch.no_grad():
             teacher_b1_output = teacher_output[b1_indices]
@@ -141,8 +142,8 @@ class PolicyLoss(nn.Module):
             teacher_b2_output = teacher_b2_output.unsqueeze(-1).expand(-1, -1, b2)
             teacher_output_matrix = torch.cat([teacher_b1_output, teacher_b2_output], 1)
             teacher_learning_matrix = self.linear1(teacher_output_matrix.transpose(1, 2)).transpose(1, 2)
-            teacher_matrix_identity = einops.rearrange(teacher_learning_matrix[:, 0, :], "a c -> (a c)").unsqueeze(-1)
-            teacher_matrix_classes = einops.rearrange(teacher_learning_matrix[:, 1, :], "a c -> (a c)").unsqueeze(-1)
+            teacher_matrix_identity = teacher_learning_matrix[:, 0, :]
+            teacher_matrix_classes = teacher_learning_matrix[:, 1, :]
             teacher_matrix_policy = einops.rearrange(teacher_learning_matrix[:, 2:, :], "a b c -> (a c) b")
         if self.type=="mse":
             kl_identity_loss=self.kd(torch.log_softmax(student_matrix_identity/self.p_t,dim=1),torch.softmax(teacher_matrix_identity/self.p_t,dim=1))*(self.p_t**2)
@@ -161,12 +162,12 @@ class PolicyLoss(nn.Module):
         b1_target=b1_target.unsqueeze(-1).expand(-1,-1,b1).transpose(0,2)
         b2_target=b2_target.unsqueeze(-1).expand(-1,-1,b2)
         target_matrix=(b1_target==b2_target).float()
-        target_matrix_classes=einops.rearrange(target_matrix[:,0,:],"a c -> (a c)").unsqueeze(-1)
+        target_matrix_classes=target_matrix[:,0,:]
         target_matrix_policy=einops.rearrange(target_matrix[:,1:,:],"a b c -> (a c) b")
-        target_matrix_identity=einops.rearrange(torch.eye(target_matrix.shape[0]).to(target_matrix.device).unsqueeze(1),"a b c -> (a c) b")
+        target_matrix_identity=torch.eye(target_matrix.shape[0]).to(target_matrix.device)
         if self.type=="mse":
-            identity_loss=self.bce(student_matrix_identity,target_matrix_identity)
-            classes_loss=self.bce(student_matrix_classes,target_matrix_classes)
+            identity_loss=self.kd(torch.log_softmax(student_matrix_identity,1),torch.softmax(target_matrix_identity,1))
+            classes_loss=self.kd(torch.log_softmax(student_matrix_classes,1),torch.softmax(target_matrix_classes,1))
             policy_loss = self.mse(student_matrix_policy,target_matrix_policy)
             ce_loss = 0.
             for weight, loss in zip(self.p_loss_weight, [identity_loss, classes_loss, policy_loss]):

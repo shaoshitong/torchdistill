@@ -135,7 +135,7 @@ train:
               reduction: 'mean'
               feature_nums: &feature_nums 128
               policy_nums: &policy_nums 14
-              p_loss_weight: [ 1.0, 0.5, 0.1 ]
+              p_loss_weight: [ 1.0, 1.0 ,1.0 ]
           factor: 1.0
   stage2:
     num_epochs: 182
@@ -166,8 +166,8 @@ train:
           feat_dim: *teacherpolicy_feat_dim
           out_dim: *teacherpolicy_out_dim
           freezes_policy_module: True
-          policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_student_policy_module.pt' ]
-          use_ckpt: False
+          policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
+          use_ckpt: True
       adaptations:
       sequential: []
       forward_hook:
@@ -175,7 +175,7 @@ train:
         output: ['model.avgpool','model.fc','policy_module']
       wrapper:
       requires_grad: True
-      frozen_modules: []
+      frozen_modules: ['policy_module']
     apex:
       requires: False
       opt_level: '01'
@@ -211,11 +211,11 @@ train:
               policy_nums: *policy_nums
               loss_weights: [ 1.0, 0.0, 1.0]
               p_t: 5
-              p_loss_weight: [1.0, 0.5, 0.1]
+              p_loss_weight: [1.0, 1.0, 1.0]
               kd_and_ce_weight: [1.0 , 1.0]
               reduction: 'mean'
               type: 'mse'
-              freeze_student: False
+              freeze_student: True
           factor: 1
 test:
   test_data_loader:
