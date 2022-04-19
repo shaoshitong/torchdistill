@@ -111,12 +111,13 @@ class PolicyLoss(nn.Module):
         self.type=type
         self.ckpt_file_path=ckpt_file_path
         map_location = {'cuda:0': 'cuda:0'}
-        print("successfully load the linear policy module")
+        print("successfully load the teacher linear policy module")
         load_module_ckpt(self.linear1,map_location,self.ckpt_file_path)
         self.linear1.weight.requires_grad=False
         self.linear1.bias.requires_grad=False
         if freeze_student:
             load_module_ckpt(self.linear2,map_location,self.ckpt_file_path)
+            print("successfully load the student linear policy module")
             # nn.init.trunc_normal_(self.linear2.weight, 0, 0.001)
             # nn.init.zeros_(self.linear2.bias)
             self.linear2.weight.requires_grad=False
