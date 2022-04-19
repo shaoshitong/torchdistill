@@ -60,7 +60,7 @@ class AuxPolicyKDLoss(nn.Module):
             raise NotImplementedError
         self.save()
         total_loss=0.
-        print([identity_loss,classes_loss,policy_loss])
+        print([identity_loss,classes_loss,policy_loss],self.linear.weight.data[5:7,:2])
         for weight,loss in zip(self.p_loss_weight,[identity_loss,classes_loss,policy_loss]):
             total_loss+=(weight*loss)
         return total_loss

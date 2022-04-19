@@ -209,7 +209,7 @@ train:
               policy_ratio: 0.75
               feature_nums: *feature_nums
               policy_nums: *policy_nums
-              loss_weights: [ 1.0, 0.9, 0.5,]
+              loss_weights: [ 1.0, 0.0, 1.0]
               p_t: 5
               p_loss_weight: [1.0, 0.5, 0.1]
               kd_and_ce_weight: [1.0 , 1.0]
