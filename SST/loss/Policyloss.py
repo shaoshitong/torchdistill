@@ -53,9 +53,8 @@ class AuxPolicyKDLoss(nn.Module):
             learning_matrix_identity=learning_matrix[:,0,:]
             learning_matrix_classes=learning_matrix[:,1,:]
             learning_matrix_policy=einops.rearrange(learning_matrix[:,2:,:],"a b c -> (a c) b")
-            print(learning_matrix_classes[0,:],learning_matrix_identity[0,:],learning_matrix_policy[0,:])
-            identity_loss=self.kl(torch.log_softmax(learning_matrix_identity,1),torch.softmax(target_matrix_identity,1))
-            classes_loss=self.kl(torch.log_softmax(learning_matrix_classes,1),torch.softmax(target_matrix_classes,1))
+            identity_loss=self.mse(learning_matrix_identity,target_matrix_identity)
+            classes_loss=self.mse(learning_matrix_classes,target_matrix_classes)
             policy_loss = self.mse(learning_matrix_policy,target_matrix_policy)
         else:
             raise NotImplementedError
@@ -147,9 +146,12 @@ class PolicyLoss(nn.Module):
             teacher_matrix_classes = teacher_learning_matrix[:, 1, :]
             teacher_matrix_policy = einops.rearrange(teacher_learning_matrix[:, 2:, :], "a b c -> (a c) b")
         if self.type=="mse":
-            kl_identity_loss=self.kd(torch.log_softmax(student_matrix_identity/self.p_t,dim=1),torch.softmax(teacher_matrix_identity/self.p_t,dim=1))*(self.p_t**2)
-            kl_classes_loss=self.kd(torch.log_softmax(student_matrix_classes/self.p_t,dim=1),torch.softmax(teacher_matrix_classes/self.p_t,dim=1))*(self.p_t**2)
+            kl_identity_loss=self.mse(student_matrix_identity,teacher_matrix_identity)
+            kl_classes_loss=self.mse(student_matrix_classes,teacher_matrix_classes)
             kl_policy_loss=self.mse(student_matrix_policy,teacher_matrix_policy)
+            print(student_matrix_classes[0,:2],teacher_matrix_classes[0,:2])
+            print(student_matrix_identity[0,:2],teacher_matrix_identity[0,:2])
+            print(student_matrix_policy[0,:],teacher_matrix_policy[0,:])
             kl_loss=0.
             for weight,loss in zip(self.p_loss_weight,[kl_identity_loss,kl_classes_loss,kl_policy_loss]):
                 kl_loss+=(weight*loss)
@@ -167,8 +169,8 @@ class PolicyLoss(nn.Module):
         target_matrix_policy=einops.rearrange(target_matrix[:,1:,:],"a b c -> (a c) b")
         target_matrix_identity=torch.eye(target_matrix.shape[0]).to(target_matrix.device)
         if self.type=="mse":
-            identity_loss=self.kd(torch.log_softmax(student_matrix_identity,1),torch.softmax(target_matrix_identity,1))
-            classes_loss=self.kd(torch.log_softmax(student_matrix_classes,1),torch.softmax(target_matrix_classes,1))
+            identity_loss=self.kd(student_matrix_identity,target_matrix_identity)
+            classes_loss=self.kd(student_matrix_classes,target_matrix_classes)
             policy_loss = self.mse(student_matrix_policy,target_matrix_policy)
             ce_loss = 0.
             for weight, loss in zip(self.p_loss_weight, [identity_loss, classes_loss, policy_loss]):

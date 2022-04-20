@@ -1,7 +1,7 @@
 #!/bin/bash
-id_weight=(0 1 10 100)
-kd_weight=(0 1 10 100)
-policy_weight=(0 1 10 100)
+id_weight=(1 10 100)
+kd_weight=(1 10 100)
+policy_weight=(1 5 10)
 a=0.1
 for k in ${id_weight[*]};
 do
