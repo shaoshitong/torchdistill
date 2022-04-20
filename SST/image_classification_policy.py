@@ -36,7 +36,7 @@ def get_argparser():
     parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/policy3/resnet18_from_resnet50_.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/policy4/resnet18_from_resnet50_.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
@@ -176,6 +176,7 @@ def main(args):
     config = yaml_util.load_yaml_file(os.path.expanduser(args.config))
     device = torch.device(args.device)
     config['train']['stage2']['criterion']['sub_terms']['policy_loss']['criterion']['params']['p_loss_weight'] = weight_loss
+    config['train']['stage1']['criterion']['sub_terms']['policy_loss']['criterion']['params']['p_loss_weight'] = weight_loss
     dataset_dict = util.get_all_datasets(config['datasets'])
     models_config = config['models']
     teacher_model_config = models_config.get('teacher_model', None)

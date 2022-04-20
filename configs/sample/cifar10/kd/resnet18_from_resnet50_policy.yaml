@@ -47,7 +47,7 @@ models:
   teacher_model:
     name: &teacher_model_name 'resnet56'
     params:
-      num_classes: 10
+      num_classes: &num_classes 10
       pretrained: True
 #      repo_url: !join [ './resource/ckpt/', *dataset_name, '/kd/', 'cifar10-resnet56-origin-w', '.pt' ]
     experiment: &teacher_experiment !join [*dataset_name, '-', *teacher_model_name]
@@ -81,7 +81,7 @@ train:
       num_workers: 16
     teacher:
       forward_proc: 'forward_batch_target_policy'
-      sequential: [ ]
+      sequential: []
       special:
         type: 'WrapperPolicy'
         params:
@@ -135,7 +135,8 @@ train:
               reduction: 'mean'
               feature_nums: &feature_nums 128
               policy_nums: &policy_nums 14
-              p_loss_weight: [ 1.0, 1.0 ,1.0 ]
+              p_loss_weight: [ 0.0, 0.0 , 0.0 ]
+              num_classes: *num_classes
           factor: 1.0
   stage2:
     num_epochs: 182
@@ -215,6 +216,7 @@ train:
               kd_and_ce_weight: [1.0 , 1.0]
               reduction: 'mean'
               type: 'mse'
+              num_classes: *num_classes
               freeze_student: True
           factor: 1
 test:
