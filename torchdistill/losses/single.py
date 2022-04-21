@@ -669,7 +669,7 @@ class AuxSSKDLoss(nn.CrossEntropyLoss):
         aug_rep = ss_module_outputs[aug_indices]
         normal_rep = normal_rep.unsqueeze(2).expand(-1, -1, three_forth_batch_size).transpose(0, 2)
         aug_rep = aug_rep.unsqueeze(2).expand(-1, -1, one_forth_batch_size)
-        cos_similarities = cosine_similarity(aug_rep, normal_rep, dim=1)
+        cos_similarities = cosine_similarity(aug_rep, normal_rep, dim=1) # 3b,b
         targets = torch.arange(one_forth_batch_size).unsqueeze(1).expand(-1, 3).contiguous().view(-1)
         targets = targets[:three_forth_batch_size].long().to(device)
         return super().forward(cos_similarities, targets)

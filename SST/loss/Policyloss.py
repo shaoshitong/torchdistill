@@ -56,7 +56,7 @@ class AuxPolicyKDLoss(nn.Module):
             learning_matrix_identity=learning_matrix[:,0,:]
             learning_matrix_classes=learning_matrix[:,1,:]
             learning_matrix_policy=einops.rearrange(learning_matrix[:,2:,:],"a b c -> (a c) b")
-            learning_matrix_identity=torch.where(target_matrix_identity==1.,learning_matrix_identity.detach(),learning_matrix_identity)
+            # learning_matrix_identity=torch.where(target_matrix_identity==1.,learning_matrix_identity.detach(),learning_matrix_identity)
             identity_loss=self.mse(learning_matrix_identity,target_matrix_identity)
             classes_loss=self.mse(learning_matrix_classes,target_matrix_classes)
             policy_loss = self.mse(learning_matrix_policy,target_matrix_policy)
@@ -154,10 +154,10 @@ class PolicyLoss(nn.Module):
             teacher_matrix_identity = teacher_learning_matrix[:, 0, :]
             teacher_matrix_classes = teacher_learning_matrix[:, 1, :]
             teacher_matrix_policy = einops.rearrange(teacher_learning_matrix[:, 2:, :], "a b c -> (a c) b")
-        teacher_matrix_identity = torch.where(torch.eye(b1).cuda().float() == 1., teacher_matrix_identity.detach(),
-                                              teacher_matrix_identity)
-        student_matrix_identity = torch.where(torch.eye(b1).cuda().float() == 1., student_matrix_identity.detach(),
-                                              student_matrix_identity)
+        # teacher_matrix_identity = torch.where(torch.eye(b1).cuda().float() == 1., teacher_matrix_identity.detach(),
+        #                                       teacher_matrix_identity)
+        # student_matrix_identity = torch.where(torch.eye(b1).cuda().float() == 1., student_matrix_identity.detach(),
+        #                                       student_matrix_identity)
         if self.type=="mse":
             kl_identity_loss=self.mse(student_matrix_identity,teacher_matrix_identity)
             kl_classes_loss=self.mse(student_matrix_classes,teacher_matrix_classes)
