@@ -135,7 +135,8 @@ train:
               reduction: 'mean'
               feature_nums: &feature_nums 128
               policy_nums: &policy_nums 14
-              p_loss_weight: [ 0.0, 0.0 , 0.0 ]
+              negative_loss_weight: &negative_loss_weight [1.0,1.0,1.0]
+              positive_loss_weight: &positive_loss_weight [1.0,1.0,1.0]
               num_classes: *num_classes
           factor: 1.0
   stage2:
@@ -212,7 +213,8 @@ train:
               policy_nums: *policy_nums
               loss_weights: [ 1.0, 0.0, 1.0]
               p_t: 5
-              p_loss_weight: [1.0, 1.0, 1.0]
+              negative_loss_weight: *negative_loss_weight
+              positive_loss_weight: *positive_loss_weight
               kd_and_ce_weight: [1.0 , 1.0]
               reduction: 'mean'
               type: 'mse'
