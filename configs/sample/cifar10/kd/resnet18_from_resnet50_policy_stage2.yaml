@@ -2,7 +2,7 @@ datasets:
   cifar10:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
-    root: &root_dir !join ['/data/', *dataset_name]
+    root: &root_dir !join ['/home/qiuziming/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar10_train !join [*dataset_name, '/train']
@@ -76,7 +76,7 @@ train:
   val_data_loader:
     dataset_id: *cifar10_val
     random_sample: False
-    batch_size: 64
+    batch_size: 1024
     num_workers: 16
   teacher:
     forward_proc: 'forward_batch_target_policy'
@@ -84,33 +84,31 @@ train:
     special:
       type: 'WrapperPolicy'
       params:
-        input_module:
+        input_module: &teacherpolicy_in_module
           path: 'model.avgpool'
           io: 'output'
-        feat_dim: 64
-        out_dim: 64
+        feat_dim: &teacherpolicy_feat_dim 64
+        out_dim: &teacherpolicy_out_dim 64
         freezes_policy_module: True
-        policy_module_ckpt: &teacherpolicy_ckpt !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
+        policy_module_ckpt:  !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
         use_ckpt: True
     forward_hook:
       input: []
       output: ['model.avgpool','model.fc','policy_module']
     wrapper:
     requires_grad: False
-    frozen_modules: ['model']
+    frozen_modules: [ 'model' ]
   student:
     forward_proc: 'forward_batch_target_policy'
     special:
       type: 'WrapperPolicy'
       params:
-        input_module:
-          path: 'model.avgpool'
-          io: 'output'
-        feat_dim: 64
-        out_dim: 64
+        input_module: *teacherpolicy_in_module
+        feat_dim: *teacherpolicy_feat_dim
+        out_dim: *teacherpolicy_out_dim
         freezes_policy_module: True
-        policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_student_policy_module.pt' ]
-        use_ckpt: False
+        policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
+        use_ckpt: True
     adaptations:
     sequential: []
     forward_hook:
@@ -142,7 +140,7 @@ train:
         criterion:
           type: 'PolicyLoss'
           params:
-            ckpt_file_path: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
+            ckpt_file_path: !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
             student_linear_module_path: 'model.fc'
             teacher_linear_module_path: 'model.fc'
             student_policy_module_path: 'policy_module'
@@ -150,14 +148,16 @@ train:
             kl_temp: 4.0
             policy_temp: 0.5
             policy_ratio: 0.75
-            feature_nums: 128
+            feature_nums:  128
             policy_nums: 14
-            loss_weights: [ 1.0, 0.9, 0.5,]
+            loss_weights: [ 1.0, 0.0, 1.0]
             p_t: 5
-            p_loss_weight: [ 1.0, 0.0, 0.0 ]
-            kd_and_ce_weight: [ 1.0 , 1.0 ]
+            negative_loss_weight:  [ 0.7 ,0.7 ,0.4 ]
+            positive_loss_weight:  [ 0.7 ,0.7 ,0.4 ]
+            kd_and_ce_weight: [1.0 , 0.0]
             reduction: 'mean'
             type: 'mse'
+            num_classes: 10
             freeze_student: True
         factor: 1
 test:

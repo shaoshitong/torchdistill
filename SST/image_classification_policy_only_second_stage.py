@@ -31,13 +31,12 @@ import SST.models.special
 logger = def_logger.getChild(__name__)
 
 
-
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml',help='yaml file path')
+    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy_stage2.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/policy_wo_ce/resnet18_from_resnet50_.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/policy_wo_ce/resnet18_from_resnet50_0.7_0.7_0.4_0.7_0.7_0.4.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
@@ -50,8 +49,7 @@ def get_argparser():
                         help='multiply learning rate by number of distributed processes (world_size)')
     parser.add_argument('--ema', default=False,type=bool,
                         help='if use ema')
-    parser.add_argument('--negative_weight_loss',nargs='+',default=None,type=float)
-    parser.add_argument('--positive_weight_loss',nargs='+',default=None,type=float)
+
 
     return parser
 
@@ -166,13 +164,8 @@ def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, de
 
 
 def main(args):
-    negative_weight_loss=args.negative_weight_loss
-    positive_weight_loss=args.positive_weight_loss
 
-    print("args p weight loss is",positive_weight_loss)
-    log_file_path = args.log.split('.txt')[0] + str(positive_weight_loss[0]) + "_" + str(positive_weight_loss[1]) + "_" + str(
-        positive_weight_loss[2]) + "_" + str(negative_weight_loss[0]) + "_" + str(negative_weight_loss[1]) + "_" + str(
-        negative_weight_loss[2])+ ".txt"
+    log_file_path = args.log
     if is_main_process() and log_file_path is not None:
         setup_log_file(os.path.expanduser(log_file_path))
     distributed, device_ids = init_distributed_mode(args.world_size, args.dist_url)
@@ -181,10 +174,6 @@ def main(args):
     set_seed(args.seed)
     config = yaml_util.load_yaml_file(os.path.expanduser(args.config))
     device = torch.device(args.device)
-    config['train']['stage2']['criterion']['sub_terms']['policy_loss']['criterion']['params']['negative_loss_weight'] = negative_weight_loss
-    config['train']['stage2']['criterion']['sub_terms']['policy_loss']['criterion']['params']['positive_loss_weight'] = positive_weight_loss
-    config['train']['stage1']['criterion']['sub_terms']['policy_loss']['criterion']['params']['negative_loss_weight'] = negative_weight_loss
-    config['train']['stage1']['criterion']['sub_terms']['policy_loss']['criterion']['params']['positive_loss_weight'] = positive_weight_loss
     dataset_dict = util.get_all_datasets(config['datasets'])
     models_config = config['models']
     teacher_model_config = models_config.get('teacher_model', None)

@@ -222,9 +222,9 @@ class PolicyLoss(nn.Module):
         kl_loss = self.kldiv_loss(torch.log_softmax(student_linear_outputs / self.kl_temp, dim=1),
                                   torch.softmax(teacher_linear_outputs / self.kl_temp, dim=1))
         kl_loss *= (self.kl_temp ** 2)
+        """===================================================Policy Loss==================================================="""
         student_policy_module_outputs = student_io_dict[self.student_policy_module_path][self.student_policy_module_io]
         teacher_policy_module_outputs = teacher_io_dict[self.teacher_policy_module_path][self.teacher_policy_module_io]
-        """===================================================Policy Loss==================================================="""
         policy_loss = self.policy_loss(teacher_policy_module_outputs,student_policy_module_outputs,targets,b1_indices,b2_indices,b1,b2)
         total_loss=0.
         for loss_weight, loss in zip(self.loss_weights, [ce_loss, kl_loss,policy_loss]):
