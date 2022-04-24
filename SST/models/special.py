@@ -40,7 +40,7 @@ class WrapperPolicy(SpecialModule):
                 Lambda(lambda x:normalize(x,dim=1))
             )
         self.ckpt_file_path = policy_module_ckpt
-        if os.path.isfile(self.ckpt_file_path) and use_ckpt:
+        if os.path.isfile(self.ckpt_file_path) and use_ckpt and identity==False:
             s="teacher" if self.is_teacher else "student"
             print(f"successfully load the policy {s} module!")
             map_location = {'cuda:0': 'cuda:{}'.format(device_ids[0])} if distributed else device
@@ -60,6 +60,8 @@ class WrapperPolicy(SpecialModule):
         self.policy_module(flat_outputs)
     @torch.no_grad()
     def post_process(self, *args, **kwargs):
+        if isinstance(self.policy_module,nn.Identity):
+            return None
         if (not self.use_ckpt) and self.is_teacher and self.policy_module._modules[list(self.policy_module._modules.keys())[0]].weight.requires_grad:
             s="teacher" if self.is_teacher else "student"
             print(f"successfully save the policy {s} module!")
