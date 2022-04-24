@@ -88,9 +88,9 @@ class PolicyLoss(nn.Module):
                  kd_and_ce_weight=[1,1],**kwargs):
         super().__init__()
         self.loss_weights = [1.0, 1.0, 1.0] if loss_weights is None else loss_weights
-        print("loss weight is",self.loss_weights)
-        print("p loss weight is",positive_loss_weight,negative_loss_weight)
-        print("kd and ce weight is ",kd_and_ce_weight)
+        print("ce,kd,policy loss weight is",self.loss_weights)
+        print("positive and negative loss weight is",positive_loss_weight,negative_loss_weight)
+        print("policy's kd and ce weight is ",kd_and_ce_weight)
         self.kl_temp = kl_temp
         self.policy_temp = policy_temp
         self.policy_ratio = policy_ratio
