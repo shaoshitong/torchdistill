@@ -19,7 +19,8 @@ class Lambda(nn.Module):
 @register_special_module
 class WrapperPolicy(SpecialModule):
     def __init__(self, input_module, feat_dim,out_dim, policy_module_ckpt, device, device_ids, distributed, freezes_policy_module=False,
-                 teacher_model=None, student_model=None,use_ckpt=False, **kwargs):
+                 teacher_model=None, student_model=None,use_ckpt=False, identity=False,
+                 **kwargs):
         super().__init__()
         is_teacher = teacher_model is not None
         if not is_teacher:
@@ -29,12 +30,15 @@ class WrapperPolicy(SpecialModule):
         self.is_teacher = is_teacher
         self.input_module_path = input_module['path']
         self.input_module_io = input_module['io']
-        policy_module = nn.Sequential(
-            nn.Linear(feat_dim, int((feat_dim+out_dim)//2)),
-            nn.ReLU(inplace=True),
-            nn.Linear(int((feat_dim+out_dim)//2), out_dim),
-            Lambda(lambda x:normalize(x,dim=1))
-        )
+        if identity:
+            policy_module=nn.Identity()
+        else:
+            policy_module = nn.Sequential(
+                nn.Linear(feat_dim, int((feat_dim+out_dim)//2)),
+                nn.ReLU(inplace=True),
+                nn.Linear(int((feat_dim+out_dim)//2), out_dim),
+                Lambda(lambda x:normalize(x,dim=1))
+            )
         self.ckpt_file_path = policy_module_ckpt
         if os.path.isfile(self.ckpt_file_path) and use_ckpt:
             s="teacher" if self.is_teacher else "student"

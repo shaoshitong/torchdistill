@@ -88,6 +88,7 @@ train:
           input_module: &teacherpolicy_in_module
             path: 'model.avgpool'
             io: 'output'
+          identity: &identity True
           feat_dim: &teacherpolicy_feat_dim 64
           out_dim: &teacherpolicy_out_dim 64
           freezes_policy_module: False
@@ -167,6 +168,7 @@ train:
           input_module: *teacherpolicy_in_module
           feat_dim: *teacherpolicy_feat_dim
           out_dim: *teacherpolicy_out_dim
+          identity: *identity
           freezes_policy_module: True
           policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
           use_ckpt: True
