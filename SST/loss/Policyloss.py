@@ -68,7 +68,6 @@ class AuxPolicyKDLoss(nn.Module):
         self.save()
         identity_loss = torch.where(target_matrix_identity == 1., identity_loss * self.positive_loss_weight[0],
                                     identity_loss * self.negative_loss_weight[0]).mean()
-        print(identity_loss)
         classes_loss = torch.where(target_matrix_classes == 1., classes_loss * self.positive_loss_weight[1],
                                     classes_loss * self.negative_loss_weight[1]).mean()
         policy_loss = torch.where(target_matrix_policy == 1., policy_loss * self.positive_loss_weight[2],
