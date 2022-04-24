@@ -136,7 +136,7 @@ train:
               reduction: 'mean'
               feature_nums: &feature_nums 128
               policy_nums: &policy_nums 14
-              negative_loss_weight: &negative_loss_weight [1.0,0.0,0.0]
+              negative_loss_weight: &negative_loss_weight [0.1,0.0,0.0]
               positive_loss_weight: &positive_loss_weight [0.0,0.0,0.0]
               num_classes: *num_classes
           factor: 1.0

@@ -21,6 +21,8 @@ class AuxPolicyKDLoss(nn.Module):
         else:
             self.linear=nn.Linear(feature_nums,2*(policy_nums+2)).cuda() # policy+classes+identity
         self.type=type
+        # nn.init.zeros_(self.linear.bias)
+        # nn.init.trunc_normal_(self.linear.weight,0,0.001)
         self.positive_loss_weight=positive_loss_weight
         self.negative_loss_weight=negative_loss_weight
         self.p_t=p_t
@@ -66,6 +68,7 @@ class AuxPolicyKDLoss(nn.Module):
         self.save()
         identity_loss = torch.where(target_matrix_identity == 1., identity_loss * self.positive_loss_weight[0],
                                     identity_loss * self.negative_loss_weight[0]).mean()
+        print(identity_loss)
         classes_loss = torch.where(target_matrix_classes == 1., classes_loss * self.positive_loss_weight[1],
                                     classes_loss * self.negative_loss_weight[1]).mean()
         policy_loss = torch.where(target_matrix_policy == 1., policy_loss * self.positive_loss_weight[2],
