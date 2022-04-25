@@ -2,7 +2,7 @@ datasets:
   cifar10:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
-    root: &root_dir !join ['G:/data/', *dataset_name]
+    root: &root_dir !join ['D:/data/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar10_train !join [*dataset_name, '/train']
@@ -134,8 +134,8 @@ train:
             params:
               module_path: 'policy_module'
               module_io: 'output'
-              negative_loss_weight: &negative_loss_weight [1.0,1.0,1.0]
-              positive_loss_weight: &positive_loss_weight [1.0,1.0,1.0]
+              negative_loss_weight: &negative_loss_weight [0.0,0.0,1.0]
+              positive_loss_weight: &positive_loss_weight [0.0,0.0,1.0]
           factor: 1.0
   stage2:
     num_epochs: 182
