@@ -69,7 +69,7 @@ train:
       dataset_id: *cifar10_train
       random_sample: True
       batch_size: 64
-      num_workers: 16
+      num_workers: 4
       cache_output:
       dataset_wrapper:
         name: 'ICPDataset'
@@ -77,8 +77,8 @@ train:
     val_data_loader:
       dataset_id: *cifar10_val
       random_sample: False
-      batch_size: 1024
-      num_workers: 16
+      batch_size: 256
+      num_workers: 4
     teacher:
       forward_proc: 'forward_batch_target_policy'
       sequential: []
@@ -93,7 +93,7 @@ train:
           freezes_policy_module: False
           identity_num: &identity_num 50000
           classes_num: &classes_num 10
-          policy_num: &policy_Num 16384
+          policy_num: &policy_Num 28
           policy_module_ckpt: &teacherpolicy_ckpt !join ['/home/Bigdata/kd/icp/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
       forward_hook:
         input: []
@@ -134,8 +134,8 @@ train:
             params:
               module_path: 'policy_module'
               module_io: 'output'
-              negative_loss_weight: &negative_loss_weight [1.0,1.0,1.0]
-              positive_loss_weight: &positive_loss_weight [1.0,1.0,1.0]
+              negative_loss_weight: &negative_loss_weight [0.0,0.0,10.0]
+              positive_loss_weight: &positive_loss_weight [0.0,0.0,10.0]
           factor: 1.0
   stage2:
     num_epochs: 182
@@ -179,7 +179,7 @@ train:
         output: ['model.layer3','model.fc','policy_module']
       wrapper:
       requires_grad: True
-      frozen_modules: ['policy_module']
+      frozen_modules: []
     apex:
       requires: False
       opt_level: '01'
@@ -218,5 +218,5 @@ test:
   test_data_loader:
     dataset_id: *cifar10_test
     random_sample: False
-    batch_size: 1024
-    num_workers: 16
+    batch_size: 256
+    num_workers: 4
