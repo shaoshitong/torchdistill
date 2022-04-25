@@ -93,7 +93,7 @@ train:
         use_ckpt: True
         identity_num: 50000
         classes_num: 10
-        policy_num: 16384
+        policy_num: 28
     forward_hook:
       input: []
       output: ['model.layer3','model.fc','policy_module']
@@ -114,7 +114,7 @@ train:
         use_ckpt: False
         identity_num: 50000
         classes_num: 10
-        policy_num: 16384
+        policy_num: 28
     adaptations:
     sequential: []
     forward_hook:
@@ -153,8 +153,8 @@ train:
             kl_temp: 4.0
             loss_weights: [ 1.0, 0.0, 1.0]
             temperature: 4.0
-            negative_loss_weight: [1.0,1.0,1.0]
-            positive_loss_weight: [1.0,1.0,1.0]
+            negative_loss_weight: [1.0,0.0,1.0]
+            positive_loss_weight: [1.0,0.0,1.0]
             kd_and_ce_weight: [1.0 , 1.0]
         factor: 1
 test:

@@ -37,7 +37,7 @@ def get_argparser():
                         help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/icp/resnet18_from_resnet50_0.0_0.0_10.0_0.0_0.0_10.0.txt', help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/icp/resnet18_from_resnet50_1.0_1.0_1.0_1.0_1.0_1.0.txt', help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
