@@ -157,20 +157,20 @@ class ICPDataset(BaseDatasetWrapper):
         self.transform=org_dataset.transform
         org_dataset.transform=None
         self.policies = [
-            SubPolicy(0.5, 'invert', 9),
-            SubPolicy(0.5, 'rotate', 9),
+            SubPolicy(0.5, 'invert', 7),
+            SubPolicy(0.5, 'rotate', 2),
+            SubPolicy(0.5, 'sharpness', 1),
+            SubPolicy(0.5, 'shearY', 8),
+            SubPolicy(0.5, 'autocontrast', 8),
+            SubPolicy(0.5, 'color', 3),
             SubPolicy(0.5, 'sharpness', 9),
-            SubPolicy(0.5, 'shearY', 9),
-            SubPolicy(0.5, 'autocontrast', 9),
-            SubPolicy(0.5, 'color', 9),
-            SubPolicy(0.5, 'sharpness', 9),
-            SubPolicy(0.5, 'equalize', 9),
-            SubPolicy(0.5, 'contrast', 9),
-            SubPolicy(0.5, 'translateY', 9),
-            SubPolicy(0.5, 'brightness',9),
-            SubPolicy(0.5, 'solarize', 9),
-            SubPolicy(0.5, 'translateX',9),
-            SubPolicy(0.5, 'shearX', 9),
+            SubPolicy(0.5, 'equalize', 5),
+            SubPolicy(0.5, 'contrast', 7),
+            SubPolicy(0.5, 'translateY', 3),
+            SubPolicy(0.5, 'brightness',6),
+            SubPolicy(0.5, 'solarize', 2),
+            SubPolicy(0.5, 'translateX',3),
+            SubPolicy(0.5, 'shearX', 8),
         ]
         self.policies_len=len(self.policies)
 

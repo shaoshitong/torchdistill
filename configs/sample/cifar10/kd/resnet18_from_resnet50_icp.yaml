@@ -134,8 +134,8 @@ train:
             params:
               module_path: 'policy_module'
               module_io: 'output'
-              negative_loss_weight: &negative_loss_weight [0.0,0.0,10.0]
-              positive_loss_weight: &positive_loss_weight [0.0,0.0,10.0]
+              negative_loss_weight: &negative_loss_weight [0.0,0.0,1.0]
+              positive_loss_weight: &positive_loss_weight [0.0,0.0,1.0]
           factor: 1.0
   stage2:
     num_epochs: 182

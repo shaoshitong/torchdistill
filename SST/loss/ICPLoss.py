@@ -42,6 +42,7 @@ class AuxICPLoss(nn.Module):
         self.policy_kl_loss = KLloss(negative_loss_weight[2], positive_loss_weight[2], 1)
         self.right_list = [0 for i in range(14)]
         self.total = [0 for i in range(14)]
+        self.iter=0.
         print(f"p loss weight is {positive_loss_weight},{negative_loss_weight}")
 
     def forward(self, student_io_dict, teacher_io_dict, target, *args, **kwargs):
@@ -61,11 +62,16 @@ class AuxICPLoss(nn.Module):
             policy_loss += self.policy_kl_loss(output_policy[indices][:, 2 * i:2 * (i + 1)], target_policy_one,
                                                target_policy_one)
             check = (output_policy[indices][:, 2 * i:2 * (i + 1)].argmax(1) == target_policy_one.argmax(1))
-            self.right_list[i] = check.sum().item()
-            self.total[i] = check.shape[0]
-        # for a, b in zip(self.right_list, self.total):
-        #     print(100 * a / b, end="%")
-        # print("")
+            self.right_list[i] += check.sum().item()
+            self.total[i] += check.shape[0]
+        self.iter+=1
+        if self.iter%500==0:
+            for a, b in zip(self.right_list, self.total):
+                print(100 * a / b, end="% ")
+            print("")
+            self.right_list=[0 for i in range(14)]
+            self.total=[0 for i in range(14)]
+            self.iter=0
         return identity_loss + classes_loss + policy_loss
 
 
