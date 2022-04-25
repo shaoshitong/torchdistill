@@ -146,3 +146,54 @@ class PolicyDataset(BaseDatasetWrapper):
         ])
         return sample,target,supp_dict
 
+def policy_classes_compute(hot):
+    l=hot.shape[0]
+    exp=torch.arange(0,l)
+    weight=2**exp
+    return (hot*weight).sum().long()
+@register_dataset_wrapper
+class ICPDataset(BaseDatasetWrapper):
+    def __init__(self,org_dataset):
+        super(ICPDataset, self).__init__(org_dataset)
+        self.transform=org_dataset.transform
+        org_dataset.transform=None
+        self.policies = [
+            SubPolicy(0.5, 'invert', 7),
+            SubPolicy(0.5, 'rotate', 2),
+            SubPolicy(0.5, 'sharpness', 1),
+            SubPolicy(0.5, 'shearY', 8),
+            SubPolicy(0.5, 'autocontrast', 8),
+            SubPolicy(0.5, 'color', 3),
+            SubPolicy(0.5, 'sharpness', 9),
+            SubPolicy(0.5, 'equalize', 5),
+            SubPolicy(0.5, 'contrast', 7),
+            SubPolicy(0.5, 'translateY', 3),
+            SubPolicy(0.5, 'brightness',6),
+            SubPolicy(0.5, 'solarize', 2),
+            SubPolicy(0.5, 'translateX',3),
+            SubPolicy(0.5, 'shearX', 8),
+        ]
+        self.policies_len=len(self.policies)
+
+    def __getitem__(self, index):
+        sample,target,supp_dict=super(ICPDataset, self).__getitem__(index)
+        policy_index=torch.zeros(self.policies_len).float()
+        new_sample=sample
+        for i in range(self.policies_len):
+            new_sample,label=self.policies[i](new_sample)
+            policy_index[i]=label
+        new_sample=self.transform(new_sample).detach()
+        sample=self.transform(sample).detach()
+        if isinstance(target,torch.Tensor) and target.ndim==2 and target.shape[-1]!=1:
+            target=target.argmax(1)
+        elif not isinstance(target,torch.Tensor):
+            target=torch.LongTensor([target])
+        identity_target=torch.LongTensor([index]).unsqueeze(0).expand(2,-1)
+        classes_target=target.unsqueeze(0).expand(2,-1) # 2,1
+        policy_target=torch.stack([policy_classes_compute(torch.zeros(self.policies_len)),policy_classes_compute(policy_index)],0).unsqueeze(-1)
+        target=torch.cat([identity_target,classes_target,policy_target],1) # 2,3
+        sample=torch.stack([
+            sample,
+            new_sample,
+        ])
+        return sample,target,supp_dict

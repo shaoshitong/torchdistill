@@ -64,7 +64,7 @@ models:
 train:
   log_freq: 100
   stage1:
-    num_epochs: 30
+    num_epochs: 1
     train_data_loader:
       dataset_id: *cifar10_train
       random_sample: True
@@ -72,7 +72,7 @@ train:
       num_workers: 4
       cache_output:
       dataset_wrapper:
-        name: 'PolicyDataset'
+        name: 'ICPDataset'
         params: {}
     val_data_loader:
       dataset_id: *cifar10_val
@@ -83,19 +83,21 @@ train:
       forward_proc: 'forward_batch_target_policy'
       sequential: []
       special:
-        type: 'WrapperPolicy'
+        type: 'WrapperICP'
         params:
           input_module: &teacherpolicy_in_module
-            path: 'model.avgpool'
+            path: 'model.layer3'
             io: 'output'
-          identity: &identity True
+          identity: &identity False
           feat_dim: &teacherpolicy_feat_dim 64
-          out_dim: &teacherpolicy_out_dim 64
           freezes_policy_module: False
-          policy_module_ckpt: &teacherpolicy_ckpt !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
+          identity_num: &identity_num 50000
+          classes_num: &classes_num 10
+          policy_num: &policy_Num 16384
+          policy_module_ckpt: &teacherpolicy_ckpt !join ['/home/Bigdata/kd/icp/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
       forward_hook:
         input: []
-        output: ['model.avgpool', 'policy_module']
+        output: ['model.layer3', 'policy_module']
       wrapper:
       requires_grad: True
       frozen_modules: ['model']
@@ -128,17 +130,12 @@ train:
       sub_terms:
         policy_loss:
           criterion:
-            type: 'AuxPolicyKDLoss'
+            type: 'AuxICPLoss'
             params:
-              ckpt_file_path:  &ckpt_file_path !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
               module_path: 'policy_module'
               module_io: 'output'
-              reduction: 'mean'
-              feature_nums: &feature_nums 128
-              policy_nums: &policy_nums 14
-              negative_loss_weight: &negative_loss_weight [0.1,0.0,0.0]
-              positive_loss_weight: &positive_loss_weight [0.0,0.0,0.0]
-              num_classes: *num_classes
+              negative_loss_weight: &negative_loss_weight [1.0,1.0,1.0]
+              positive_loss_weight: &positive_loss_weight [1.0,1.0,1.0]
           factor: 1.0
   stage2:
     num_epochs: 182
@@ -146,37 +143,40 @@ train:
       forward_proc: 'forward_batch_target_policy'
       sequential: []
       special:
-        type: 'WrapperPolicy'
+        type: 'WrapperICP'
         params:
           input_module: *teacherpolicy_in_module
           feat_dim: *teacherpolicy_feat_dim
-          out_dim: *teacherpolicy_out_dim
           freezes_policy_module: True
           policy_module_ckpt:  *teacherpolicy_ckpt
           use_ckpt: True
+          identity_num: *identity_num
+          classes_num: *classes_num
+          policy_num: *policy_Num
       forward_hook:
         input: []
-        output: ['model.avgpool','model.fc','policy_module']
+        output: ['model.layer3','model.fc','policy_module']
       wrapper:
       requires_grad: False
       frozen_modules: [ 'model' ]
     student:
       forward_proc: 'forward_batch_target_policy'
       special:
-        type: 'WrapperPolicy'
+        type: 'WrapperICP'
         params:
           input_module: *teacherpolicy_in_module
           feat_dim: *teacherpolicy_feat_dim
-          out_dim: *teacherpolicy_out_dim
-          identity: *identity
-          freezes_policy_module: True
-          policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
-          use_ckpt: True
+          freezes_policy_module: False
+          policy_module_ckpt: *teacherpolicy_ckpt
+          use_ckpt: False
+          identity_num: *identity_num
+          classes_num: *classes_num
+          policy_num: *policy_Num
       adaptations:
       sequential: []
       forward_hook:
         input: []
-        output: ['model.avgpool','model.fc','policy_module']
+        output: ['model.layer3','model.fc','policy_module']
       wrapper:
       requires_grad: True
       frozen_modules: ['policy_module']
@@ -201,27 +201,18 @@ train:
       sub_terms:
         policy_loss:
           criterion:
-            type: 'PolicyLoss'
+            type: 'ICPLoss'
             params:
-              ckpt_file_path: *ckpt_file_path
               student_linear_module_path: 'model.fc'
               teacher_linear_module_path: 'model.fc'
               student_policy_module_path: 'policy_module'
               teacher_policy_module_path: 'policy_module'
               kl_temp: 4.0
-              policy_temp: 0.5
-              policy_ratio: 0.75
-              feature_nums: *feature_nums
-              policy_nums: *policy_nums
               loss_weights: [ 1.0, 0.0, 1.0]
-              p_t: 5
+              temperature: 4.0
               negative_loss_weight: *negative_loss_weight
               positive_loss_weight: *positive_loss_weight
-              kd_and_ce_weight: [1.0 , 0.0]
-              reduction: 'mean'
-              type: 'mse'
-              num_classes: *num_classes
-              freeze_student: False
+              kd_and_ce_weight: [1.0 , 1.0]
           factor: 1
 test:
   test_data_loader:
