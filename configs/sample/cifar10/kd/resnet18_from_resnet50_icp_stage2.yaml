@@ -2,7 +2,7 @@ datasets:
   cifar10:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
-    root: &root_dir !join ['/root/autodl-tmp/', *dataset_name]
+    root: &root_dir !join ['G:/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar10_train !join [*dataset_name, '/train']
@@ -154,8 +154,8 @@ train:
             loss_weights: [ 1.0, 0.0, 1.0]
             temperature: 4.0
             adnamic_weight: False
-            negative_loss_weight: [0.0,0.0,0.0]
-            positive_loss_weight: [0.0,0.0,0.0]
+            negative_loss_weight: [1.0,0.0,0.0]
+            positive_loss_weight: [1.0,0.0,0.0]
             kd_and_ce_weight: [1.0 , 1.0]
         factor: 1
 test:

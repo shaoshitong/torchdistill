@@ -55,9 +55,10 @@ class AuxICPLoss(nn.Module):
         classes_loss = self.classes_kl_loss(output_classes, target_classes, target_classes)
         policy_loss = 0.
         indices = torch.arange(1,b*2,2)
+        indices2= torch.arange(0,b*2,2)
         for i in range(target.shape[1] - 2):
             target_policy_one = F.one_hot(target[indices][:, i + 2], 2).cuda().float()
-            policy_loss += self.policy_kl_loss(output_policy[indices][:, 2 * i:2 * (i + 1)], target_policy_one,
+            policy_loss += self.policy_kl_loss(output_policy[indices][:, 2 * i:2 * (i + 1)]-output_policy[indices2][:, 2 * i:2 * (i + 1)].detach(), target_policy_one,
                                                target_policy_one)
         return identity_loss + classes_loss + policy_loss
 
@@ -111,6 +112,7 @@ class ICPLoss(nn.Module):
         kl_policy_loss = 0.
         ce_policy_loss = 0.
         indices = torch.arange(1,b*2,2)
+        indices2= torch.arange(0,b*2,2)
         classes_nums=teacher_output_classes.shape[1]
         identity_nums=teacher_output_identity.shape[1]
         if self.adnamic_weight:
@@ -132,10 +134,10 @@ class ICPLoss(nn.Module):
                     self.adnamic_weights[self.adnamic_weights<0]=0.
         for i in range(targets.shape[1] - 2):
             target_policy_one = F.one_hot(targets[indices][:, i + 2], 2).cuda().float()
-            kl_policy_loss += (self.policy_kl_loss(student_output_policy[indices][:, 2 * i:2 * (i + 1)],
-                                                  teacher_output_policy[indices][:, 2 * i:2 * (i + 1)],
+            kl_policy_loss += (self.policy_kl_loss(student_output_policy[indices][:, 2 * i:2 * (i + 1)]-student_output_policy[indices2][:, 2 * i:2 * (i + 1)].detach(),
+                                                  teacher_output_policy[indices][:, 2 * i:2 * (i + 1)]-teacher_output_policy[indices2][:, 2 * i:2 * (i + 1)].detach(),
                                                   target_policy_one)*self.adnamic_weights[i+2])
-            ce_policy_loss += (self.policy_ce_loss(student_output_policy[indices][:, 2 * i:2 * (i + 1)],
+            ce_policy_loss += (self.policy_ce_loss(student_output_policy[indices][:, 2 * i:2 * (i + 1)]-student_output_policy[indices2][:, 2 * i:2 * (i + 1)].detach(),
                                                   target_policy_one, target_policy_one)*self.adnamic_weights[i+2])
         kl_identity_loss = self.identity_kl_loss(student_output_identity, teacher_output_identity, target_identity)*self.adnamic_weights[0]
         kl_classes_loss = self.classes_kl_loss(student_output_classes, teacher_output_classes, target_classes)*self.adnamic_weights[1]

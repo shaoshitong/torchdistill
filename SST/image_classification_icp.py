@@ -3,7 +3,7 @@ import datetime
 import os, sys
 import time
 
-os.chdir('/home/work/torchdistill')
+os.chdir('G:/Alex/torchdistill')
 root = os.getcwd()
 sys.path.append(root)
 import torch
@@ -37,7 +37,7 @@ def get_argparser():
                         help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='/root/log/cifar10/kd/icp/resnet18_from_resnet50_true_adnamic_0.0_0.0_0.0_0.0_0.0_0.0.txt', help='log file path')
+    parser.add_argument('--log', default='log/cifar10/kd/icp/resnet18_from_resnet50_true_adnamic_1.0_0.0_0.0_1.0_0.0_0.0_3.txt', help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
