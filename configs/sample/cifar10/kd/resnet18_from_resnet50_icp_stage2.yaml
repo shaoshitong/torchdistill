@@ -153,6 +153,7 @@ train:
             kl_temp: 4.0
             loss_weights: [ 1.0, 0.0, 1.0]
             temperature: 4.0
+            adnamic_weight: True
             negative_loss_weight: [0.0,0.0,1.0]
             positive_loss_weight: [0.0,0.0,1.0]
             kd_and_ce_weight: [1.0 , 1.0]

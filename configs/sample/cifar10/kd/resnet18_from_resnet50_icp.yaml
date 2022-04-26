@@ -208,6 +208,7 @@ train:
               student_policy_module_path: 'policy_module'
               teacher_policy_module_path: 'policy_module'
               kl_temp: 4.0
+              adnamic_weight: True
               loss_weights: [ 1.0, 0.0, 1.0]
               temperature: 4.0
               negative_loss_weight: [0.0,0.0,1.0]
