@@ -97,7 +97,7 @@ class ICPLoss(nn.Module):
         self.policy_ce_loss = KLloss(negative_loss_weight[2], positive_loss_weight[2], 1)
         self.adnamic_weights=torch.ones(16).cuda()
         self.iter_nums=0
-        self.adnamic_weights=adnamic_weight
+        self.adnamic_weight=adnamic_weight
     def icp_loss(self, teacher_output, student_output, targets):
         b, p, l = targets.shape
         targets = targets.view(-1, l)
@@ -113,7 +113,7 @@ class ICPLoss(nn.Module):
         indices = torch.arange(1,b*2,2)
         classes_nums=teacher_output_classes.shape[1]
         identity_nums=teacher_output_identity.shape[1]
-        if self.adnamic_weights:
+        if self.adnamic_weight:
             policy_adnamic_weights = torch.stack([(targets[indices][:, i + 2] == teacher_output_policy[indices][:,
                                                                                  2 * i:2 * (i + 1)].argmax(1)).sum() /
                                                   indices.shape[0] for i in range(targets.shape[1] - 2)], 0)
