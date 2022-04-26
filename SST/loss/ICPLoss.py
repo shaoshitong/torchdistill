@@ -95,7 +95,7 @@ class ICPLoss(nn.Module):
         self.identity_ce_loss = KLloss(negative_loss_weight[0], positive_loss_weight[0], 1)
         self.classes_ce_loss = KLloss(negative_loss_weight[1], positive_loss_weight[1], 1)
         self.policy_ce_loss = KLloss(negative_loss_weight[2], positive_loss_weight[2], 1)
-        self.adnamic_weights=torch.ones(14).cuda()/2
+        self.adnamic_weights=torch.ones(16).cuda()/2
         self.iter_nums=0
     def icp_loss(self, teacher_output, student_output, targets):
         b, p, l = targets.shape
@@ -107,22 +107,27 @@ class ICPLoss(nn.Module):
         with torch.no_grad():
             teacher_output_identity, teacher_output_classes, teacher_output_policy = teacher_output
         """======================================================KD============================================"""
-        kl_identity_loss = self.identity_kl_loss(student_output_identity, teacher_output_identity, target_identity)
-        kl_classes_loss = self.classes_kl_loss(student_output_classes, teacher_output_classes, target_classes)
         kl_policy_loss = 0.
         ce_policy_loss = 0.
         indices = torch.arange(1,b*2,2)
-        adnamic_weights=torch.stack([(targets[indices][:, i + 2]==teacher_output_policy[indices][:, 2 * i:2 * (i + 1)].argmax(1)).sum() for i in range(targets.shape[1]-2)],0)
-        adnamic_weights=(adnamic_weights-adnamic_weights.min())/(adnamic_weights.max()-adnamic_weights.min())
+        classes_nums=teacher_output_classes.shape[1]
+        identity_nums=teacher_output_identity.shape[1]
+        policy_adnamic_weights=torch.stack([(targets[indices][:, i + 2]==teacher_output_policy[indices][:, 2 * i:2 * (i + 1)].argmax(1)).sum()/indices.shape[0] for i in range(targets.shape[1]-2)],0)
+        classes_adnamic_weights=(classes_nums*(targets[:,1]==teacher_output_classes.argmax(1)).sum()/targets.shape[0]-1)/(classes_nums-1).unsqueeze(0)
+        identity_adnamic_weights=(identity_nums*(targets[:,0]==teacher_output_policy.argmax(1)).sum()/targets.shape[0]-1)/(identity_nums-1).unsqueeze(0)
+        adnamic_weights=torch.cat([identity_adnamic_weights,classes_adnamic_weights,policy_adnamic_weights],0)
+
         with torch.no_grad():
             self.adnamic_weights=adnamic_weights*0.01+self.adnamic_weights*0.99
         for i in range(targets.shape[1] - 2):
             target_policy_one = F.one_hot(targets[indices][:, i + 2], 2).cuda().float()
             kl_policy_loss += (self.policy_kl_loss(student_output_policy[indices][:, 2 * i:2 * (i + 1)],
                                                   teacher_output_policy[indices][:, 2 * i:2 * (i + 1)],
-                                                  target_policy_one)*self.adnamic_weights[i])
+                                                  target_policy_one)*self.adnamic_weights[i+2])
             ce_policy_loss += (self.policy_ce_loss(student_output_policy[indices][:, 2 * i:2 * (i + 1)],
-                                                  target_policy_one, target_policy_one)*self.adnamic_weights[i])
+                                                  target_policy_one, target_policy_one)*self.adnamic_weights[i+2])
+        kl_identity_loss = self.identity_kl_loss(student_output_identity, teacher_output_identity, target_identity)*self.adnamic_weights[0]
+        kl_classes_loss = self.classes_kl_loss(student_output_classes, teacher_output_classes, target_classes)*self.adnamic_weights[1]
         kl_loss = kl_identity_loss + kl_classes_loss + kl_policy_loss
         """======================================================CE============================================"""
         ce_identity_loss = self.identity_ce_loss(student_output_identity, target_identity, target_identity)
