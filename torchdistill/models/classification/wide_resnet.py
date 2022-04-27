@@ -10,7 +10,7 @@ from torchdistill.models.registry import register_model_func
 Refactored https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
 for CIFAR datasets, referring to https://github.com/szagoruyko/wide-residual-networks
 """
-
+SECOND_URL='https://github.com/shaoshitong/torchdistill/releases/download'
 ROOT_URL = 'https://github.com/yoshitomo-matsubara/torchdistill/releases/download'
 MODEL_URL_DICT = {
     'cifar10-wide_resnet40_4': ROOT_URL + '/v0.1.1/cifar10-wide_resnet40_4.pt',
@@ -18,7 +18,8 @@ MODEL_URL_DICT = {
     'cifar10-wide_resnet16_8': ROOT_URL + '/v0.1.1/cifar10-wide_resnet16_8.pt',
     'cifar100-wide_resnet40_4': ROOT_URL + '/v0.1.1/cifar100-wide_resnet40_4.pt',
     'cifar100-wide_resnet28_10': ROOT_URL + '/v0.1.1/cifar100-wide_resnet28_10.pt',
-    'cifar100-wide_resnet16_8': ROOT_URL + '/v0.1.1/cifar100-wide_resnet16_8.pt'
+    'cifar100-wide_resnet16_8': ROOT_URL + '/v0.1.1/cifar100-wide_resnet16_8.pt',
+    'cifar100-wide_resnet40_2': SECOND_URL+'/v0.3.2/wrn_40_2.pth',
 }
 
 
@@ -132,6 +133,19 @@ def wide_resnet40_4(dropout_p=0.3, num_classes=10, pretrained=False, progress=Tr
 
 
 @register_model_func
+def wide_resnet40_2(dropout_p=0.3, num_classes=10, pretrained=False, progress=True, **kwargs: Any) -> WideResNet:
+    r"""WRN-40-4 model from
+    `"Wide Residual Networks" <https://arxiv.org/pdf/1512.03385.pdf>`_.
+    Args:
+        dropout_p (float): p in Dropout
+        num_classes (int): 10 and 100 for CIFAR-10 and CIFAR-100, respectively
+        pretrained (bool): If True, returns a model pre-trained on CIFAR-10/100
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    return wide_resnet(40, 2, dropout_p, num_classes, pretrained, progress, **kwargs)
+
+
+@register_model_func
 def wide_resnet28_10(dropout_p=0.3, num_classes=10, pretrained=False, progress=True, **kwargs: Any) -> WideResNet:
     r"""WRN-28-10 model from
     `"Wide Residual Networks" <https://arxiv.org/pdf/1512.03385.pdf>`_.
@@ -155,3 +169,14 @@ def wide_resnet16_8(dropout_p=0.3, num_classes=10, pretrained=False, progress=Tr
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return wide_resnet(16, 8, dropout_p, num_classes, pretrained, progress, **kwargs)
+@register_model_func
+def wide_resnet16_2(dropout_p=0.3, num_classes=10, pretrained=False, progress=True, **kwargs: Any) -> WideResNet:
+    r"""WRN-40-4 model from
+    `"Wide Residual Networks" <https://arxiv.org/pdf/1512.03385.pdf>`_.
+    Args:
+        dropout_p (float): p in Dropout
+        num_classes (int): 10 and 100 for CIFAR-10 and CIFAR-100, respectively
+        pretrained (bool): If True, returns a model pre-trained on CIFAR-10/100
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    return wide_resnet(16, 2, dropout_p, num_classes, pretrained, progress, **kwargs)
