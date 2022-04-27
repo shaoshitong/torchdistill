@@ -1,7 +1,8 @@
 from typing import Any
 
-import torch
+import torch,math
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import Tensor
 
 from torchdistill.models.registry import register_model_func
@@ -23,81 +24,119 @@ MODEL_URL_DICT = {
 }
 
 
-class WideBasicBlock(nn.Module):
-    def __init__(self, in_planes, planes, dropout_rate, stride=1):
-        super().__init__()
+
+class BasicBlock(nn.Module):
+    def __init__(self, in_planes, out_planes, stride, dropRate=0.0):
+        super(BasicBlock, self).__init__()
         self.bn1 = nn.BatchNorm2d(in_planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.dropout = nn.Dropout(p=dropout_rate)
-        self.bn2 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
-            )
+        self.relu1 = nn.ReLU(inplace=True)
+        self.conv1 = nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_planes)
+        self.relu2 = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_planes, out_planes, kernel_size=3, stride=1,
+                               padding=1, bias=False)
+        self.droprate = dropRate
+        self.equalInOut = (in_planes == out_planes)
+        self.convShortcut = (not self.equalInOut) and nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride,
+                               padding=0, bias=False) or None
 
     def forward(self, x):
-        out = self.bn1(x)
-        out = self.relu(out)
-        out = self.conv1(out)
-        out = self.dropout(out)
-        out = self.bn2(out)
-        out = self.relu(out)
+        if not self.equalInOut:
+            x = self.relu1(self.bn1(x))
+        else:
+            out = self.relu1(self.bn1(x))
+        out = self.relu2(self.bn2(self.conv1(out if self.equalInOut else x)))
+        if self.droprate > 0:
+            out = F.dropout(out, p=self.droprate, training=self.training)
         out = self.conv2(out)
-        out += self.shortcut(x)
-        return out
+        return torch.add(x if self.equalInOut else self.convShortcut(x), out)
+
+
+class NetworkBlock(nn.Module):
+    def __init__(self, nb_layers, in_planes, out_planes, block, stride, dropRate=0.0):
+        super(NetworkBlock, self).__init__()
+        self.layer = self._make_layer(block, in_planes, out_planes, nb_layers, stride, dropRate)
+
+    def _make_layer(self, block, in_planes, out_planes, nb_layers, stride, dropRate):
+        layers = []
+        for i in range(nb_layers):
+            layers.append(block(i == 0 and in_planes or out_planes, out_planes, i == 0 and stride or 1, dropRate))
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.layer(x)
 
 
 class WideResNet(nn.Module):
-    def __init__(self, depth, k, dropout_p, block, num_classes, norm_layer=None):
-        super().__init__()
-        n = (depth - 4) / 6
-        stage_sizes = [16, 16 * k, 32 * k, 64 * k]
-        self.in_planes = 16
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
-
-        self.conv1 = nn.Conv2d(3, stage_sizes[0], kernel_size=3, stride=1, padding=1, bias=False)
-        self.layer1 = self._make_wide_layer(block, stage_sizes[1], n, dropout_p, 1)
-        self.layer2 = self._make_wide_layer(block, stage_sizes[2], n, dropout_p, 2)
-        self.layer3 = self._make_wide_layer(block, stage_sizes[3], n, dropout_p, 2)
-        self.bn1 = norm_layer(stage_sizes[3])
+    def __init__(self, depth, num_classes, widen_factor=1, dropRate=0.0,**kwargs):
+        super(WideResNet, self).__init__()
+        nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
+        assert (depth - 4) % 6 == 0, 'depth should be 6n+4'
+        n = (depth - 4) // 6
+        block = BasicBlock
+        # 1st conv before any network block
+        self.conv1 = nn.Conv2d(3, nChannels[0], kernel_size=3, stride=1,
+                               padding=1, bias=False)
+        # 1st block
+        self.block1 = NetworkBlock(n, nChannels[0], nChannels[1], block, 1, dropRate)
+        # 2nd block
+        self.block2 = NetworkBlock(n, nChannels[1], nChannels[2], block, 2, dropRate)
+        # 3rd block
+        self.block3 = NetworkBlock(n, nChannels[2], nChannels[3], block, 2, dropRate)
+        # global average pooling and classifier
+        self.bn1 = nn.BatchNorm2d(nChannels[3])
         self.relu = nn.ReLU(inplace=True)
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(stage_sizes[3], num_classes)
+        self.fc = nn.Linear(nChannels[3], num_classes)
+        self.nChannels = nChannels[3]
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                m.bias.data.zero_()
 
-    def _make_wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
-        strides = [stride] + [1] * (int(num_blocks) - 1)
-        layers = []
-        for stride in strides:
-            layers.append(block(self.in_planes, planes, dropout_rate, stride))
-            self.in_planes = planes
-        return nn.Sequential(*layers)
+    def get_feat_modules(self):
+        feat_m = nn.ModuleList([])
+        feat_m.append(self.conv1)
+        feat_m.append(self.block1)
+        feat_m.append(self.block2)
+        feat_m.append(self.block3)
+        return feat_m
 
-    def _forward_impl(self, x: Tensor) -> Tensor:
-        # See note [TorchScript super()]
-        x = self.conv1(x)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        x = self.fc(x)
-        return x
+    def get_bn_before_relu(self):
+        bn1 = self.block2.layer[0].bn1
+        bn2 = self.block3.layer[0].bn1
+        bn3 = self.bn1
 
-    def forward(self, x: Tensor) -> Tensor:
-        return self._forward_impl(x)
+        return [bn1, bn2, bn3]
+
+    def forward(self, x, is_feat=False, preact=False):
+        out = self.conv1(x)
+        f0 = out
+        out = self.block1(out)
+        f1 = out
+        out = self.block2(out)
+        f2 = out
+        out = self.block3(out)
+        f3 = out
+        out = self.relu(self.bn1(out))
+        out = F.avg_pool2d(out, 8)
+        out = out.view(-1, self.nChannels)
+        f4 = out
+        out = self.fc(out)
+        if is_feat:
+            if preact:
+                f1 = self.block2.layer[0].bn1(f1)
+                f2 = self.block3.layer[0].bn1(f2)
+                f3 = self.bn1(f3)
+            return [f1, f2, f3], out
+        else:
+            return out
 
 
 @register_model_func
@@ -111,10 +150,10 @@ def wide_resnet(
         **kwargs: Any
 ) -> WideResNet:
     assert (depth - 4) % 6 == 0, 'depth of Wide ResNet (WRN) should be 6n + 4'
-    model = WideResNet(depth, k, dropout_p, WideBasicBlock, num_classes, **kwargs)
+    model = WideResNet(depth,num_classes,k, dropout_p,**kwargs)
     model_key = 'cifar{}-wide_resnet{}_{}'.format(num_classes, depth, k)
     if pretrained and model_key in MODEL_URL_DICT:
-        state_dict = torch.hub.load_state_dict_from_url(MODEL_URL_DICT[model_key], progress=progress)
+        state_dict = torch.hub.load_state_dict_from_url(MODEL_URL_DICT[model_key], progress=progress)['state_dict']
         model.load_state_dict(state_dict)
     return model
 
@@ -133,7 +172,7 @@ def wide_resnet40_4(dropout_p=0.3, num_classes=10, pretrained=False, progress=Tr
 
 
 @register_model_func
-def wide_resnet40_2(dropout_p=0.3, num_classes=10, pretrained=False, progress=True, **kwargs: Any) -> WideResNet:
+def wide_resnet40_2(dropout_p=0.0, num_classes=10, pretrained=False, progress=True, **kwargs: Any) -> WideResNet:
     r"""WRN-40-4 model from
     `"Wide Residual Networks" <https://arxiv.org/pdf/1512.03385.pdf>`_.
     Args:
@@ -170,7 +209,7 @@ def wide_resnet16_8(dropout_p=0.3, num_classes=10, pretrained=False, progress=Tr
     """
     return wide_resnet(16, 8, dropout_p, num_classes, pretrained, progress, **kwargs)
 @register_model_func
-def wide_resnet16_2(dropout_p=0.3, num_classes=10, pretrained=False, progress=True, **kwargs: Any) -> WideResNet:
+def wide_resnet16_2(dropout_p=0.0, num_classes=10, pretrained=False, progress=True, **kwargs: Any) -> WideResNet:
     r"""WRN-40-4 model from
     `"Wide Residual Networks" <https://arxiv.org/pdf/1512.03385.pdf>`_.
     Args:
