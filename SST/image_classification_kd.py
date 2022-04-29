@@ -30,7 +30,7 @@ def get_argparser():
     parser.add_argument('--config',default='configs/sample/cifar100/kd/wide_resnet16_2_from_wide_resnet40_2_kd.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar100/kd/resnet18_from_resnet50_kd.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar100/kd/resnet18_from_resnet50_kd_4倍.txt',help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')

@@ -64,17 +64,17 @@ models:
 
 train:
   log_freq: 100
-  num_epochs: 240
+  num_epochs: 720
   train_data_loader:
     dataset_id: *cifar100_train
     random_sample: True
-    batch_size: 128
+    batch_size: 256
     num_workers: 4
     cache_output:
   val_data_loader:
     dataset_id: *cifar100_val
     random_sample: False
-    batch_size: 128
+    batch_size: 256
     num_workers: 4
   teacher:
     sequential: []
@@ -105,16 +105,18 @@ train:
   scheduler:
     type: 'MultiStepLR'
     params:
-      milestones: [150,180,210]
+      milestones: [450,540,630]
       gamma: 0.1
   criterion:
     type: 'GeneralizedCustomLoss'
     org_term:
       criterion:
-        type: 'CrossEntropyLoss'
+        type: 'KDLoss'
         params:
-          reduction: 'mean'
-      factor: 1.0
+          temperature: 4.0
+          alpha: 0.5
+          reduction: 'batchmean'
+      factor: 2.0
     sub_terms:
 
 test:
