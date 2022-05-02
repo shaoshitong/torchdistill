@@ -64,7 +64,7 @@ models:
 
 train:
   log_freq: 100
-  num_epochs: 720
+  num_epochs: 960
   train_data_loader:
     dataset_id: *cifar100_train
     random_sample: True
@@ -105,7 +105,7 @@ train:
   scheduler:
     type: 'MultiStepLR'
     params:
-      milestones: [450,540,630]
+      milestones: [480,720,840]
       gamma: 0.1
   criterion:
     type: 'GeneralizedCustomLoss'

@@ -82,7 +82,7 @@ class AuxPolicyKDLoss(nn.Module):
 class PolicyLoss(nn.Module):
     def __init__(self, student_linear_module_path, teacher_linear_module_path, student_policy_module_path,
                  teacher_policy_module_path, kl_temp, policy_temp,policy_ratio,ckpt_file_path,
-                 feature_nums=128, policy_nums=7,num_classes=10,
+                 feature_nums=128, policy_nums=7,num_classes=10,option=0,
                  student_linear_module_io='output', teacher_linear_module_io='output',
                  student_policy_module_io='output', teacher_policy_module_io='output',
                  loss_weights=None, reduction='mean',type='mse',freeze_student=False,
@@ -97,11 +97,12 @@ class PolicyLoss(nn.Module):
         self.policy_temp = policy_temp
         self.policy_ratio = policy_ratio
         self.p_t=p_t
+        self.option=option
         self.num_classes=num_classes
         self.positive_loss_weight=positive_loss_weight
         self.negative_loss_weight=negative_loss_weight
         self.kd_and_ce_weight=kd_and_ce_weight
-        cel_reduction = 'mean' if reduction == 'mean' else reduction
+        cel_reduction = 'mean' if reduction == 'batchmean' else reduction
         self.cross_entropy_loss = nn.CrossEntropyLoss(reduction=cel_reduction)
         self.kldiv_loss = nn.KLDivLoss(reduction=reduction)
         self.student_linear_module_path = student_linear_module_path
@@ -219,11 +220,31 @@ class PolicyLoss(nn.Module):
         target=targets.view(-1,policy_len+1)
         cls_target=target[:,0]
         """======================================================CE Loss==================================================="""
-        ce_loss = self.cross_entropy_loss(student_linear_outputs, cls_target.long())
+        ce_loss_origin = self.cross_entropy_loss(student_linear_outputs[b1_indices], cls_target[b1_indices].long())
+        ce_loss_augment = self.cross_entropy_loss(student_linear_outputs[b2_indices], cls_target[b2_indices].long())
+        if self.option==0:
+            ce_loss=(ce_loss_origin+ce_loss_augment)/2
+        elif self.option==1:
+            ce_loss=(ce_loss_origin+ce_loss_augment)/2
+            return ce_loss
+        else:
+            ce_loss=ce_loss_origin
         """======================================================KL Loss==================================================="""
-        kl_loss = self.kldiv_loss(torch.log_softmax(student_linear_outputs / self.kl_temp, dim=1),
-                                  torch.softmax(teacher_linear_outputs / self.kl_temp, dim=1))
-        kl_loss *= (self.kl_temp ** 2)
+        kl_loss_origin = self.kldiv_loss(torch.log_softmax(student_linear_outputs[b1_indices] / self.kl_temp, dim=1),
+                                  torch.softmax(teacher_linear_outputs[b1_indices] / self.kl_temp, dim=1))
+        kl_loss_origin *= (self.kl_temp ** 2)
+        kl_loss_augment = self.kldiv_loss(torch.log_softmax(student_linear_outputs[b2_indices] / self.kl_temp, dim=1),
+                                  torch.softmax(teacher_linear_outputs[b2_indices] / self.kl_temp, dim=1))
+        kl_loss_augment *= (self.kl_temp ** 2)
+        if self.option==2:
+            kl_loss=kl_loss_origin
+            return ce_loss+kl_loss
+        elif self.option==3:
+            kl_loss=kl_loss_augment
+            return ce_loss+kl_loss
+        else:
+            kl_loss=(kl_loss_augment+kl_loss_origin)/2
+
         """===================================================Policy Loss==================================================="""
         student_policy_module_outputs = student_io_dict[self.student_policy_module_path][self.student_policy_module_io]
         teacher_policy_module_outputs = teacher_io_dict[self.teacher_policy_module_path][self.teacher_policy_module_io]
