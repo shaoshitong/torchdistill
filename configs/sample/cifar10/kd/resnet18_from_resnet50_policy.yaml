@@ -2,7 +2,7 @@ datasets:
   cifar10:
     name: &dataset_name 'cifar10'
     type: 'CIFAR10'
-    root: &root_dir !join ['G:/data/', *dataset_name]
+    root: &root_dir !join ['/home/qiuziming/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar10_train !join [*dataset_name, '/train']
@@ -64,7 +64,7 @@ models:
 train:
   log_freq: 100
   stage1:
-    num_epochs: 30
+    num_epochs: 1
     train_data_loader:
       dataset_id: *cifar10_train
       random_sample: True
@@ -88,7 +88,7 @@ train:
           input_module: &teacherpolicy_in_module
             path: 'model.avgpool'
             io: 'output'
-          identity: &identity True
+          identity: &identity False
           feat_dim: &teacherpolicy_feat_dim 64
           out_dim: &teacherpolicy_out_dim 64
           freezes_policy_module: False
@@ -213,12 +213,13 @@ train:
               policy_ratio: 0.75
               feature_nums: *feature_nums
               policy_nums: *policy_nums
-              loss_weights: [ 1.0, 0.0, 1.0]
+              loss_weights: [ 1.0, 1.0, 1.0]
               p_t: 5
+              option: 1
               negative_loss_weight: *negative_loss_weight
               positive_loss_weight: *positive_loss_weight
-              kd_and_ce_weight: [1.0 , 0.0]
-              reduction: 'mean'
+              kd_and_ce_weight: [1.0 , 1.0]
+              reduction: 'batchmean'
               type: 'mse'
               num_classes: *num_classes
               freeze_student: False

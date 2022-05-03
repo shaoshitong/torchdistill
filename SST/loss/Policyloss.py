@@ -225,7 +225,7 @@ class PolicyLoss(nn.Module):
         if self.option==0:
             ce_loss=(ce_loss_origin+ce_loss_augment)/2
         elif self.option==1:
-            ce_loss=(ce_loss_origin+ce_loss_augment)/2
+            ce_loss=ce_loss_origin
             return ce_loss
         else:
             ce_loss=ce_loss_origin

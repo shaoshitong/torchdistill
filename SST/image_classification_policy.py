@@ -3,7 +3,7 @@ import datetime
 import os, sys
 import time
 
-os.chdir('G:/Alex/torchdistill')
+os.chdir('/home/qiuziming/torchdistill')
 root = os.getcwd()
 sys.path.append(root)
 import torch
@@ -33,7 +33,7 @@ logger = def_logger.getChild(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config', default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy_stage2.yaml',
+    parser.add_argument('--config', default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml',
                         help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
