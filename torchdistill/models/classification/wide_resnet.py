@@ -86,6 +86,7 @@ class WideResNet(nn.Module):
         self.block3 = NetworkBlock(n, nChannels[2], nChannels[3], block, 2, dropRate)
         # global average pooling and classifier
         self.bn1 = nn.BatchNorm2d(nChannels[3])
+        self.avgpool= nn.AvgPool2d(8)
         self.relu = nn.ReLU(inplace=True)
         self.fc = nn.Linear(nChannels[3], num_classes)
         self.nChannels = nChannels[3]
@@ -125,7 +126,7 @@ class WideResNet(nn.Module):
         out = self.block3(out)
         f3 = out
         out = self.relu(self.bn1(out))
-        out = F.avg_pool2d(out, 8)
+        out = self.avgpool(out)
         out = out.view(-1, self.nChannels)
         f4 = out
         out = self.fc(out)
