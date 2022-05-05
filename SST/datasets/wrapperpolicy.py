@@ -46,6 +46,23 @@ def equalize(img,magnitude,fillcolor):
 def invert(img,magnitude,fillcolor):
     return ImageOps.invert(img)
 
+def rand_bbox(size, lam):
+    W = size[1]
+    H = size[2]
+    cut_rat = np.sqrt(1. - lam)
+    cut_w = np.int(W * cut_rat)
+    cut_h = np.int(H * cut_rat)
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+    bbx1 = np.clip(cx - cut_w // 2, 0, W)
+    bby1 = np.clip(cy - cut_h // 2, 0, H)
+    bbx2 = np.clip(cx + cut_w // 2, 0, W)
+    bby2 = np.clip(cy + cut_h // 2, 0, H)
+    return bbx1, bby1, bbx2, bby2
+
+
+
+
 class SubPolicy:
 
     def __init__(self, p1, operation1, magnitude_idx1, fillcolor=(128, 128, 128)):
@@ -149,7 +166,7 @@ class PolicyDataset(BaseDatasetWrapper):
 
 @register_dataset_wrapper
 class PolicyDatasetC100(BaseDatasetWrapper):
-    def __init__(self,org_dataset):
+    def __init__(self,org_dataset,mixcut=False,mixcut_prob=0.1,beta=0.3):
         super(PolicyDatasetC100, self).__init__(org_dataset)
         self.transform=org_dataset.transform
         org_dataset.transform=None
@@ -172,11 +189,34 @@ class PolicyDatasetC100(BaseDatasetWrapper):
             SubPolicy(0.5, 'rotate', 3),
 
         ]
+        self.beta=beta
+        self.mixcut_prob=mixcut_prob
+        self.mixcut=mixcut
         self.policies_len=len(self.policies)
 
     def __getitem__(self, index):
-        sample,target,supp_dict=super(PolicyDatasetC100, self).__getitem__(index)
-        policy_index=torch.zeros(self.policies_len).float()
+        r = np.random.rand(1)
+        if self.beta > 0 and r < self.mixcut_prob:
+            lam = np.random.beta(self.beta, self.beta)
+            rand_index=random.randint(0,len(self)-1)
+            sample, target_a, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
+            rsample,target_b, supp_dict = super(PolicyDatasetC100, self).__getitem__(rand_index)
+            policy_index = torch.zeros(self.policies_len).float()
+
+            bbx1, bby1, bbx2, bby2 = rand_bbox(input.size(), lam)
+            input[:, :, bbx1:bbx2, bby1:bby2] = input[rand_index, :, bbx1:bbx2, bby1:bby2]
+            # adjust lambda to exactly match pixel ratio
+            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (input.size()[-1] * input.size()[-2]))
+            # compute output
+            output = model(input)
+            loss = criterion(output, target_a) * lam + criterion(output, target_b) * (1. - lam)
+        else:
+            sample, target, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
+            policy_index = torch.zeros(self.policies_len).float()
+
+
+
+
         new_sample=sample
         for i in range(self.policies_len):
             new_sample,label=self.policies[i](new_sample)
