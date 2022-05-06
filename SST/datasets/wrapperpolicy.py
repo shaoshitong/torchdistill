@@ -4,6 +4,7 @@ import torch
 from torch.utils.data import Dataset
 import math
 import torch
+import torch.nn.functional as F
 import random
 import torchvision.datasets
 from torchvision.transforms import *
@@ -118,7 +119,7 @@ class SubPolicy:
 
 @register_dataset_wrapper
 class PolicyDataset(BaseDatasetWrapper):
-    def __init__(self,org_dataset):
+    def __init__(self,org_dataset,mixcut=False,mixcut_prob=0.1,beta=0.3):
         super(PolicyDataset, self).__init__(org_dataset)
         self.transform=org_dataset.transform
         org_dataset.transform=None
@@ -139,28 +140,42 @@ class PolicyDataset(BaseDatasetWrapper):
             SubPolicy(0.5, 'shearX', 8),
         ]
         self.policies_len=len(self.policies)
-
+        self.beta=beta
+        self.mixcut_prob=mixcut_prob
+        self.mixcut=mixcut
     def __getitem__(self, index):
-        sample,target,supp_dict=super(PolicyDataset, self).__getitem__(index)
-        policy_index=torch.zeros(self.policies_len).float()
-        new_sample=sample
+        sample, target_a, supp_dict = super(PolicyDataset, self).__getitem__(index)
+        sample=self.transform(sample).detach()
+        r = np.random.rand(1)
+        if self.mixcut and self.beta > 0 and r < self.mixcut_prob:
+            lam = np.random.beta(self.beta, self.beta)
+            rand_index=random.randint(0,len(self)-1)
+            rsample,target_b, supp_dict = super(PolicyDataset, self).__getitem__(rand_index)
+            rsample = self.transform(rsample)
+            bbx1, bby1, bbx2, bby2 = rand_bbox(sample.size(), lam)
+            sample[ :, bbx1:bbx2, bby1:bby2] = rsample[ :, bbx1:bbx2, bby1:bby2]
+            # adjust lambda to exactly match pixel ratio
+            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (sample.size()[-1] * sample.size()[-2]))
+            target=F.one_hot(torch.LongTensor([target_a]),10)*lam+ F.one_hot(torch.LongTensor([target_b]),10)*(1.-lam)
+        else:
+            target=target_a
+        new_sample=transforms.ToPILImage()(sample)
+        policy_index = torch.zeros(self.policies_len).float()
         for i in range(self.policies_len):
             new_sample,label=self.policies[i](new_sample)
             policy_index[i]=label
         new_sample=self.transform(new_sample).detach()
-        sample=self.transform(sample).detach()
-        if isinstance(target,torch.Tensor) and target.ndim==2 and target.shape[-1]!=1:
-            target=target.argmax(1)
-        elif not isinstance(target,torch.Tensor):
-            target=torch.LongTensor([target])
-        target=target.unsqueeze(0).expand(2,-1) # 2,1
+        if not isinstance(target,torch.Tensor):
+            target=F.one_hot(torch.LongTensor([target]),10)
+        target=target.expand(2,-1) # 2,1
         policy_target=torch.stack([torch.zeros(self.policies_len).float(),policy_index],0) # 2, policy_len
-        target=torch.cat([target,policy_target],1) # 2,policy_len+1
+        target=torch.cat([target,policy_target],1) # 2,num_classes+policy_len
         sample=torch.stack([
             sample,
             new_sample,
         ])
         return sample,target,supp_dict
+
 
 
 
@@ -195,41 +210,32 @@ class PolicyDatasetC100(BaseDatasetWrapper):
         self.policies_len=len(self.policies)
 
     def __getitem__(self, index):
+        sample, target_a, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
+        sample=self.transform(sample).detach()
         r = np.random.rand(1)
-        if self.beta > 0 and r < self.mixcut_prob:
+        if self.mixcut and self.beta > 0 and r < self.mixcut_prob:
             lam = np.random.beta(self.beta, self.beta)
             rand_index=random.randint(0,len(self)-1)
-            sample, target_a, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
             rsample,target_b, supp_dict = super(PolicyDatasetC100, self).__getitem__(rand_index)
-            policy_index = torch.zeros(self.policies_len).float()
-
-            bbx1, bby1, bbx2, bby2 = rand_bbox(input.size(), lam)
-            input[:, :, bbx1:bbx2, bby1:bby2] = input[rand_index, :, bbx1:bbx2, bby1:bby2]
+            rsample = self.transform(rsample)
+            bbx1, bby1, bbx2, bby2 = rand_bbox(sample.size(), lam)
+            sample[ :, bbx1:bbx2, bby1:bby2] = rsample[ :, bbx1:bbx2, bby1:bby2]
             # adjust lambda to exactly match pixel ratio
-            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (input.size()[-1] * input.size()[-2]))
-            # compute output
-            output = model(input)
-            loss = criterion(output, target_a) * lam + criterion(output, target_b) * (1. - lam)
+            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (sample.size()[-1] * sample.size()[-2]))
+            target=F.one_hot(torch.LongTensor([target_a]),100)*lam+ F.one_hot(torch.LongTensor([target_b]),100)*(1.-lam)
         else:
-            sample, target, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
-            policy_index = torch.zeros(self.policies_len).float()
-
-
-
-
-        new_sample=sample
+            target=target_a
+        new_sample=transforms.ToPILImage()(sample)
+        policy_index = torch.zeros(self.policies_len).float()
         for i in range(self.policies_len):
             new_sample,label=self.policies[i](new_sample)
             policy_index[i]=label
         new_sample=self.transform(new_sample).detach()
-        sample=self.transform(sample).detach()
-        if isinstance(target,torch.Tensor) and target.ndim==2 and target.shape[-1]!=1:
-            target=target.argmax(1)
-        elif not isinstance(target,torch.Tensor):
-            target=torch.LongTensor([target])
-        target=target.unsqueeze(0).expand(2,-1) # 2,1
+        if not isinstance(target,torch.Tensor):
+            target=F.one_hot(torch.LongTensor([target]),100)
+        target=target.expand(2,-1) # 2,1
         policy_target=torch.stack([torch.zeros(self.policies_len).float(),policy_index],0) # 2, policy_len
-        target=torch.cat([target,policy_target],1) # 2,policy_len+1
+        target=torch.cat([target,policy_target],1) # 2,num_classes+policy_len
         sample=torch.stack([
             sample,
             new_sample,

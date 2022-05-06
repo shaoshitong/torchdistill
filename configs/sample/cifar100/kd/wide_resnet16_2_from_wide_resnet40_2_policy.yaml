@@ -2,7 +2,7 @@ datasets:
   cifar100:
     name: &dataset_name 'cifar100'
     type: 'CIFAR100'
-    root: &root_dir !join ['D:/data/data/', *dataset_name]
+    root: &root_dir !join ['/data/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar100_train !join [ *dataset_name, '/train' ]
@@ -74,7 +74,10 @@ train:
       cache_output:
       dataset_wrapper:
         name: 'PolicyDatasetC100'
-        params: {}
+        params:
+          mixcut: False
+          mixcut_prob: 0.5
+          beta: 0.3
     val_data_loader:
       dataset_id: *cifar100_val
       random_sample: False

@@ -1,6 +1,7 @@
 from torchdistill.models.util import wrap_if_distributed, load_module_ckpt, save_module_ckpt, redesign_model
 import torch
 from torch import nn
+import torch.nn.functional as F
 from torch.nn.functional import adaptive_avg_pool2d, adaptive_max_pool2d, normalize, cosine_similarity
 from torchdistill.losses.single import register_single_loss
 import einops
@@ -15,14 +16,12 @@ class AuxPolicyKDLoss(nn.Module):
         self.module_io = module_io
         if type=="mse":
             self.linear=nn.Linear(feature_nums,policy_nums+2).cuda() # policy+classes+identity
-            self.mse=nn.MSELoss(reduction='none')
+            self.mse=nn.MSELoss(reduction='mean')
             self.kl=nn.KLDivLoss(reduction="mean")
             self.bce=nn.BCEWithLogitsLoss(reduction="mean")
         else:
             self.linear=nn.Linear(feature_nums,2*(policy_nums+2)).cuda() # policy+classes+identity
         self.type=type
-        # nn.init.zeros_(self.linear.bias)
-        # nn.init.trunc_normal_(self.linear.weight,0,0.001)
         self.positive_loss_weight=positive_loss_weight
         self.negative_loss_weight=negative_loss_weight
         self.p_t=p_t
@@ -34,48 +33,14 @@ class AuxPolicyKDLoss(nn.Module):
         policy_module_outputs = teacher_io_dict[self.module_path][self.module_io]
         b,c = policy_module_outputs.shape
         assert b%2==0,"the batchsize mod 2 should be zero!"
-        b1=int(b/2)
-        b2=int(b/2)
         b1_indices=torch.arange(b)%2==0
         b2_indices=torch.arange(b)%2!=0
         b1_output=policy_module_outputs[b1_indices] # original
         b2_output=policy_module_outputs[b2_indices] # augment
-        b,p,policy_len=target.shape
-        target=target.view(-1,policy_len)
-        b1_target=target[b1_indices]
-        b2_target=target[b2_indices]
-        identiy_value=1/(b1-1)+1
-        classes_value=1/(self.num_classes-1)+1
-        b1_target=b1_target.unsqueeze(-1).expand(-1,-1,b1).transpose(0,2)
-        b2_target=b2_target.unsqueeze(-1).expand(-1,-1,b2)
-        target_matrix=(b1_target==b2_target).float()
-        target_matrix_classes=target_matrix[:,0,:]*classes_value-1/(self.num_classes-1)
-        target_matrix_policy=einops.rearrange(target_matrix[:,1:,:],"a b c -> (a c) b")*2-1
-        target_matrix_identity=torch.eye(target_matrix.shape[0]).to(target_matrix.device).float()*identiy_value-1/(b1-1)
-        if self.type=="mse":
-            b1_output = b1_output.unsqueeze(-1).expand(-1, -1, b1).transpose(0, 2)
-            b2_output = b2_output.unsqueeze(-1).expand(-1, -1, b2)
-            output_matrix = torch.cat([b1_output, b2_output], 1)
-            learning_matrix = self.linear(output_matrix.transpose(1, 2)).transpose(1, 2)
-            learning_matrix_identity=learning_matrix[:,0,:]
-            learning_matrix_classes=learning_matrix[:,1,:]
-            learning_matrix_policy=einops.rearrange(learning_matrix[:,2:,:],"a b c -> (a c) b")
-            identity_loss=self.mse(learning_matrix_identity,target_matrix_identity)
-            classes_loss=self.mse(learning_matrix_classes,target_matrix_classes)
-            policy_loss = self.mse(learning_matrix_policy,target_matrix_policy)
-        else:
-            raise NotImplementedError
         self.save()
-        identity_loss = torch.where(target_matrix_identity == 1., identity_loss * self.positive_loss_weight[0],
-                                    identity_loss * self.negative_loss_weight[0]).mean()
-        classes_loss = torch.where(target_matrix_classes == 1., classes_loss * self.positive_loss_weight[1],
-                                    classes_loss * self.negative_loss_weight[1]).mean()
-        policy_loss = torch.where(target_matrix_policy == 1., policy_loss * self.positive_loss_weight[2],
-                                    policy_loss * self.negative_loss_weight[2]).mean()
-        return identity_loss+classes_loss+policy_loss
+        return self.mse(b1_output,b2_output)
     @torch.no_grad()
     def save(self, *args, **kwargs):
-        # print("successfully save the linear policy module")
         save_module_ckpt(self.linear, self.ckpt_file_path)
 
 @register_single_loss
@@ -103,6 +68,7 @@ class PolicyLoss(nn.Module):
         self.negative_loss_weight=negative_loss_weight
         self.kd_and_ce_weight=kd_and_ce_weight
         cel_reduction = 'mean' if reduction == 'batchmean' else reduction
+
         self.cross_entropy_loss = nn.CrossEntropyLoss(reduction=cel_reduction)
         self.kldiv_loss = nn.KLDivLoss(reduction=reduction)
         self.student_linear_module_path = student_linear_module_path
@@ -131,13 +97,9 @@ class PolicyLoss(nn.Module):
         if freeze_student:
             load_module_ckpt(self.linear2,map_location,self.ckpt_file_path)
             print("successfully load the student linear policy module")
-            # nn.init.trunc_normal_(self.linear2.weight, 0, 0.001)
-            # nn.init.zeros_(self.linear2.bias)
             self.linear2.weight.requires_grad=False
             self.linear2.bias.requires_grad=False
         else:
-            # nn.init.trunc_normal_(self.linear2.weight, 0, 0.001)
-            # nn.init.zeros_(self.linear2.bias)
             pass
     def policy_loss(self,teacher_output,student_output,targets,b1_indices,b2_indices,b1,b2):
         student_b1_output=student_output[b1_indices]
@@ -215,40 +177,26 @@ class PolicyLoss(nn.Module):
         b2 = int(b / 2)
         b1_indices = torch.arange(b) % 2 == 0
         b2_indices = torch.arange(b) % 2 != 0
-        b,p,policy_len=targets.shape
-        policy_len=policy_len-1
-        target=targets.view(-1,policy_len+1)
-        cls_target=target[:,0]
+        b,p,c=targets.shape
+        target=targets.view(-1,c)
+        if target.shape[-1]>15:
+            cls_target=target[:,:student_linear_outputs.shape[-1]]
+        else:
+            cls_target=target[:,0]
         """======================================================CE Loss==================================================="""
-        ce_loss_origin = self.cross_entropy_loss(student_linear_outputs[b1_indices], cls_target[b1_indices].long())
-        ce_loss_augment = self.cross_entropy_loss(student_linear_outputs[b2_indices], cls_target[b2_indices].long())
-        if self.option==0:
-            ce_loss=(ce_loss_origin+ce_loss_augment)/2
-        elif self.option==1:
-            ce_loss=ce_loss_origin
-            return ce_loss
+        if cls_target.ndim==1:
+            ce_loss=self.cross_entropy_loss(student_linear_outputs, cls_target.long())
         else:
-            ce_loss=ce_loss_origin
+            ce_loss=self.kldiv_loss(torch.log_softmax(student_linear_outputs,1),cls_target)
         """======================================================KL Loss==================================================="""
-        kl_loss_origin = self.kldiv_loss(torch.log_softmax(student_linear_outputs[b1_indices] / self.kl_temp, dim=1),
-                                  torch.softmax(teacher_linear_outputs[b1_indices] / self.kl_temp, dim=1))
-        kl_loss_origin *= (self.kl_temp ** 2)
-        kl_loss_augment = self.kldiv_loss(torch.log_softmax(student_linear_outputs[b2_indices] / self.kl_temp, dim=1),
-                                  torch.softmax(teacher_linear_outputs[b2_indices] / self.kl_temp, dim=1))
-        kl_loss_augment *= (self.kl_temp ** 2)
-        if self.option==2:
-            kl_loss=kl_loss_origin
-            return ce_loss+kl_loss
-        elif self.option==3:
-            kl_loss=kl_loss_augment
-            return ce_loss+kl_loss
-        else:
-            kl_loss=(kl_loss_augment+kl_loss_origin)/2
-
+        kl_loss = self.kldiv_loss(torch.log_softmax(student_linear_outputs / self.kl_temp, dim=1),
+                                  torch.softmax(teacher_linear_outputs / self.kl_temp, dim=1))
+        kl_loss *= (self.kl_temp ** 2)
         """===================================================Policy Loss==================================================="""
-        student_policy_module_outputs = student_io_dict[self.student_policy_module_path][self.student_policy_module_io]
-        teacher_policy_module_outputs = teacher_io_dict[self.teacher_policy_module_path][self.teacher_policy_module_io]
-        policy_loss = self.policy_loss(teacher_policy_module_outputs,student_policy_module_outputs,targets,b1_indices,b2_indices,b1,b2)
+        # student_policy_module_outputs = student_io_dict[self.student_policy_module_path][self.student_policy_module_io]
+        # teacher_policy_module_outputs = teacher_io_dict[self.teacher_policy_module_path][self.teacher_policy_module_io]
+        # policy_loss = self.policy_loss(teacher_policy_module_outputs,student_policy_module_outputs,targets,b1_indices,b2_indices,b1,b2)
+        policy_loss=0.
         total_loss=0.
         for loss_weight, loss in zip(self.loss_weights, [ce_loss, kl_loss,policy_loss]):
             total_loss += loss_weight * loss
