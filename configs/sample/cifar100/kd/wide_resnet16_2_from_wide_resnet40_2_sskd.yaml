@@ -61,56 +61,55 @@ models:
     experiment: &student_experiment !join [*dataset_name, '-', *student_model_name, '_from_', *teacher_model_name]
     ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', *student_experiment, '-final_run.pt']
 
-
 train:
   log_freq: 100
   stage1:
-    num_epochs: 1
+    num_epochs: 30
     train_data_loader:
       dataset_id: *cifar100_train
       random_sample: True
+      batch_size: 64
+      num_workers: 4
+      dataset_wrapper:
+        name: 'SSKDDatasetWrapper'
+        params: { }
+    val_data_loader:
+      dataset_id: *cifar100_test
+      random_sample: False
       batch_size: 128
       num_workers: 4
-      cache_output:
-      dataset_wrapper:
-        name: 'PolicyDatasetC100'
-        params: {}
-    val_data_loader:
-      dataset_id: *cifar100_val
-      random_sample: False
-      batch_size: 256
-      num_workers: 4
     teacher:
-      forward_proc: 'forward_batch_target_policy'
-      sequential: []
+      forward_proc: 'forward_batch4sskd'
+      sequential: [ ]
       special:
-        type: 'WrapperPolicy'
+        type: 'SSWrapper4SSKD'
         params:
-          input_module: &teacherpolicy_in_module
+          input_module: &teacher4sskd_in_module
             path: 'model.avgpool'
             io: 'output'
-          identity: &identity False
-          feat_dim: &teacherpolicy_feat_dim 128
-          out_dim: &teacherpolicy_out_dim 128
-          freezes_policy_module: False
-          policy_module_ckpt: &teacherpolicy_ckpt !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
+          feat_dim: &teacher4sskd_feat_dim 128
+          freezes_ss_module: False
+          ss_module_ckpt: &teacher4sskd_ckpt !join [ './resource/kd/sskd/', *student_experiment, '_teacher_ss_module.pt' ]
       forward_hook:
-        input: []
-        output: ['model.avgpool', 'policy_module']
+        input: [ ]
+        output: [ 'model.avgpool', 'ss_module' ]
       wrapper:
       requires_grad: True
-      frozen_modules: ['model']
+      frozen_modules: [ 'model' ]
     student:
       adaptations:
       special:
         type: 'EmptyModule'
         params:
-      sequential: []
+      sequential: [ ]
       forward_hook:
-        input: []
-        output: []
+        input: [ ]
+        output: [ ]
       wrapper:
       requires_grad: False
+    apex:
+      requires: False
+      opt_level: '01'
     optimizer:
       type: 'SGD'
       params:
@@ -127,60 +126,50 @@ train:
       org_term:
         factor: 0.0
       sub_terms:
-        policy_loss:
+        aux_task:
           criterion:
-            type: 'AuxPolicyKDLoss'
+            type: 'AuxSSKDLoss'
             params:
-              ckpt_file_path:  &ckpt_file_path !join ['/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_linear_teacher.pt' ]
-              module_path: 'policy_module'
+              module_path: 'ss_module'
               module_io: 'output'
               reduction: 'mean'
-              feature_nums: &feature_nums 256
-              policy_nums: &policy_nums 14
-              negative_loss_weight: &negative_loss_weight [0.9,0.9,0.0]
-              positive_loss_weight: &positive_loss_weight [0.3,0.7,0.0]
-              num_classes: *num_classes
           factor: 1.0
   stage2:
     num_epochs: 120
     teacher:
-      forward_proc: 'forward_batch_target_policy'
-      sequential: []
+      forward_proc: 'forward_batch4sskd'
+      sequential: [ ]
       special:
-        type: 'WrapperPolicy'
+        type: 'SSWrapper4SSKD'
         params:
-          input_module: *teacherpolicy_in_module
-          feat_dim: *teacherpolicy_feat_dim
-          out_dim: *teacherpolicy_out_dim
-          freezes_policy_module: True
-          policy_module_ckpt:  *teacherpolicy_ckpt
-          use_ckpt: True
+          input_module: *teacher4sskd_in_module
+          feat_dim: *teacher4sskd_feat_dim
+          freezes_ss_module: True
+          ss_module_ckpt: *teacher4sskd_ckpt
       forward_hook:
-        input: []
-        output: ['model.avgpool','model.fc','policy_module']
+        input: [ ]
+        output: [ 'model.avgpool', 'model.fc', 'ss_module' ]
       wrapper:
       requires_grad: False
-      frozen_modules: [ 'model' ]
     student:
-      forward_proc: 'forward_batch_target_policy'
-      special:
-        type: 'WrapperPolicy'
-        params:
-          input_module: *teacherpolicy_in_module
-          feat_dim: *teacherpolicy_feat_dim
-          out_dim: *teacherpolicy_out_dim
-          identity: *identity
-          freezes_policy_module: True
-          policy_module_ckpt: !join [ '/home/Bigdata/kd/policy/cifar10/', *student_experiment, '_teacher_policy_module.pt' ]
-          use_ckpt: True
+      forward_proc: 'forward_batch4sskd'
       adaptations:
-      sequential: []
+      sequential: [ ]
+      special:
+        type: 'SSWrapper4SSKD'
+        params:
+          input_module:
+            path: 'model.avgpool'
+            io: 'output'
+          feat_dim: 128
+          freezes_ss_module: False
+          ss_module_ckpt: !join [ './resource/kd/sskd/', *student_experiment, '_student_ss_module.pt' ]
       forward_hook:
-        input: []
-        output: ['model.avgpool','model.fc','policy_module']
+        input: [ ]
+        output: [ 'model.avgpool', 'model.fc', 'ss_module' ]
       wrapper:
       requires_grad: True
-      frozen_modules: ['policy_module']
+      frozen_modules: [ ]
     apex:
       requires: False
       opt_level: '01'
@@ -189,7 +178,7 @@ train:
       params:
         lr: 0.1
         momentum: 0.9
-        weight_decay: 0.0001
+        weight_decay: 0.0005
     scheduler:
       type: 'MultiStepLR'
       params:
@@ -200,34 +189,25 @@ train:
       org_term:
         factor: 0.0
       sub_terms:
-        policy_loss:
+        sskd:
           criterion:
-            type: 'PolicyLoss'
+            type: 'SSKDLoss'
             params:
-              ckpt_file_path: *ckpt_file_path
               student_linear_module_path: 'model.fc'
               teacher_linear_module_path: 'model.fc'
-              student_policy_module_path: 'policy_module'
-              teacher_policy_module_path: 'policy_module'
+              student_ss_module_path: 'ss_module'
+              teacher_ss_module_path: 'ss_module'
               kl_temp: 4.0
-              policy_temp: 0.5
-              policy_ratio: 0.75
-              feature_nums: *feature_nums
-              policy_nums: *policy_nums
-              loss_weights: [ 1.0, 0.0, 0.0]
-              p_t: 5
-              option: 0
-              negative_loss_weight: *negative_loss_weight
-              positive_loss_weight: *positive_loss_weight
-              kd_and_ce_weight: [0.0 , 0.0]
+              ss_temp: 0.5
+              tf_temp: 4.0
+              ss_ratio: 0.75
+              tf_ratio: 1.0
+              loss_weights: [ 1.0, 0.9, 0.0, 0.9 ]
               reduction: 'batchmean'
-              type: 'mse'
-              num_classes: *num_classes
-              freeze_student: False
           factor: 1.0
 test:
   test_data_loader:
     dataset_id: *cifar100_test
     random_sample: False
-    batch_size: 256
+    batch_size: 128
     num_workers: 4
