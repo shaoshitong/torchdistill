@@ -2,7 +2,7 @@ import argparse
 import datetime
 import os,sys
 import time
-os.chdir('G:/Alex/torchdistill')
+os.chdir('/home/sst/product/torchdistill')
 root=os.getcwd()
 sys.path.append(root)
 import torch
