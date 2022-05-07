@@ -2,7 +2,7 @@ from torchdistill.models.util import wrap_if_distributed, load_module_ckpt, save
 import torch
 from torch import nn
 from torch.nn.functional import adaptive_avg_pool2d, adaptive_max_pool2d, normalize, cosine_similarity
-from torchdistill.losses.single import register_single_loss
+from torchdistill.losses.single import register_single_loss,register_org_loss
 import einops
 @register_single_loss
 class AuxPolicyKDLoss(nn.Module):
@@ -253,3 +253,12 @@ class PolicyLoss(nn.Module):
         for loss_weight, loss in zip(self.loss_weights, [ce_loss, kl_loss,policy_loss]):
             total_loss += loss_weight * loss
         return total_loss
+
+@register_org_loss
+class PCELoss(nn.Module):
+    def __init__(self):
+        super(PCELoss, self).__init__()
+        self.cls_loss=nn.CrossEntropyLoss()
+    def forward(self,model_output,target):
+        target=target.view(-1)
+        return self.cls_loss(model_output,target)

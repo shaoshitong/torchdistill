@@ -2,7 +2,7 @@ import argparse
 import datetime
 import os,sys
 import time
-os.chdir('G:/Alex/torchdistill')
+os.chdir('/home/qiuziming/product/torchdistill')
 root=os.getcwd()
 sys.path.append(root)
 import torch
@@ -21,13 +21,17 @@ from torchdistill.eval.classification import compute_accuracy
 from torchdistill.misc.log import setup_log_file, SmoothedValue, MetricLogger
 from torchdistill.models.official import get_image_classification_model
 from torchdistill.models.registry import get_model
-
+import SST.core.forward_proc
+import SST.loss.Policyloss
+import SST.loss.utils
+import SST.datasets.wrapperpolicy
+import SST.models.special
 logger = def_logger.getChild(__name__)
 
 
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config',default='configs/sample/cifar100/kd/wide_resnet16_2_from_wide_resnet40_2_origin.yaml',help='yaml file path')
+    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_origin_policy.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--log', default='log/cifar100/kd/wrn16_2_from_wrn40_2_origin_4倍_1.txt',help='log file path')

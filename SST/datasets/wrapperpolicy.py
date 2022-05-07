@@ -118,7 +118,7 @@ class SubPolicy:
 
 @register_dataset_wrapper
 class PolicyDataset(BaseDatasetWrapper):
-    def __init__(self,org_dataset):
+    def __init__(self,org_dataset,only_classes=False):
         super(PolicyDataset, self).__init__(org_dataset)
         self.transform=org_dataset.transform
         org_dataset.transform=None
@@ -139,7 +139,7 @@ class PolicyDataset(BaseDatasetWrapper):
             SubPolicy(0.5, 'shearX', 8),
         ]
         self.policies_len=len(self.policies)
-
+        self.only_classes=only_classes
     def __getitem__(self, index):
         sample,target,supp_dict=super(PolicyDataset, self).__getitem__(index)
         policy_index=torch.zeros(self.policies_len).float()
@@ -155,7 +155,8 @@ class PolicyDataset(BaseDatasetWrapper):
             target=torch.LongTensor([target])
         target=target.unsqueeze(0).expand(2,-1) # 2,1
         policy_target=torch.stack([torch.zeros(self.policies_len).float(),policy_index],0) # 2, policy_len
-        target=torch.cat([target,policy_target],1) # 2,policy_len+1
+        if self.only_classes!=True:
+            target=torch.cat([target,policy_target],1) # 2,policy_len+1
         sample=torch.stack([
             sample,
             new_sample,
@@ -166,7 +167,7 @@ class PolicyDataset(BaseDatasetWrapper):
 
 @register_dataset_wrapper
 class PolicyDatasetC100(BaseDatasetWrapper):
-    def __init__(self,org_dataset,mixcut=False,mixcut_prob=0.1,beta=0.3):
+    def __init__(self,org_dataset,only_classes=False):
         super(PolicyDatasetC100, self).__init__(org_dataset)
         self.transform=org_dataset.transform
         org_dataset.transform=None
@@ -189,34 +190,12 @@ class PolicyDatasetC100(BaseDatasetWrapper):
             SubPolicy(0.5, 'rotate', 3),
 
         ]
-        self.beta=beta
-        self.mixcut_prob=mixcut_prob
-        self.mixcut=mixcut
+        self.only_classes=only_classes
         self.policies_len=len(self.policies)
 
     def __getitem__(self, index):
-        r = np.random.rand(1)
-        if self.beta > 0 and r < self.mixcut_prob:
-            lam = np.random.beta(self.beta, self.beta)
-            rand_index=random.randint(0,len(self)-1)
-            sample, target_a, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
-            rsample,target_b, supp_dict = super(PolicyDatasetC100, self).__getitem__(rand_index)
-            policy_index = torch.zeros(self.policies_len).float()
-
-            bbx1, bby1, bbx2, bby2 = rand_bbox(input.size(), lam)
-            input[:, :, bbx1:bbx2, bby1:bby2] = input[rand_index, :, bbx1:bbx2, bby1:bby2]
-            # adjust lambda to exactly match pixel ratio
-            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (input.size()[-1] * input.size()[-2]))
-            # compute output
-            output = model(input)
-            loss = criterion(output, target_a) * lam + criterion(output, target_b) * (1. - lam)
-        else:
-            sample, target, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
-            policy_index = torch.zeros(self.policies_len).float()
-
-
-
-
+        sample, target, supp_dict = super(PolicyDatasetC100, self).__getitem__(index)
+        policy_index = torch.zeros(self.policies_len).float()
         new_sample=sample
         for i in range(self.policies_len):
             new_sample,label=self.policies[i](new_sample)
@@ -229,7 +208,8 @@ class PolicyDatasetC100(BaseDatasetWrapper):
             target=torch.LongTensor([target])
         target=target.unsqueeze(0).expand(2,-1) # 2,1
         policy_target=torch.stack([torch.zeros(self.policies_len).float(),policy_index],0) # 2, policy_len
-        target=torch.cat([target,policy_target],1) # 2,policy_len+1
+        if self.only_classes!=True:
+            target=torch.cat([target,policy_target],1) # 2,policy_len+1
         sample=torch.stack([
             sample,
             new_sample,
