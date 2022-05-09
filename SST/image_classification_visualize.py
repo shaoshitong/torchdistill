@@ -20,15 +20,21 @@ from torchdistill.eval.classification import compute_accuracy
 from torchdistill.misc.log import setup_log_file, SmoothedValue, MetricLogger
 from torchdistill.models.official import get_image_classification_model
 from torchdistill.models.registry import get_model
+import SST.core.forward_proc
+import SST.loss.Policyloss
+import SST.loss.utils
+import SST.datasets.wrapperpolicy
+import SST.models.special
+
 inps,outs=[],[]
 logger = def_logger.getChild(__name__)
 
 def layer_hook(module,inp,out):
-    outs.append(out)
+    outs.append(out.view(out.shape[0],-1))
 
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_visualize.yaml',help='yaml file path')
+    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml',help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--log', default='log/cifar10/kd/fkd/resnet18_from_resnet50_visualize.txt',help='log file path')
@@ -83,22 +89,17 @@ def evaluate(model, data_loader, device, device_ids, distributed, log_freq=1000,
 
     if title is not None:
         logger.info(title)
-
     model.eval()
     metric_logger = MetricLogger(delimiter='  ')
-    for image, target in metric_logger.log_every(data_loader, log_freq, header):
+    targets_list=[]
+
+    for image, target,supp_dict in data_loader:
         image = image.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
+        image=image[:,1,:,:,:]
+        target=target[:,1,0]
         output = model(image)
-        from SST.utils.Matrix import confusion_matrix_pyplot,Kernel_VIS
-        from SST.utils.Pmatrix import Matrix_VIS
-        # confusion_matrix_pyplot(target,output,num_classes=10)
-        global outs
-        outs.append(output)
-        outs=Kernel_VIS()(outs)
-        for out in outs:
-            Matrix_VIS(out)
-        exit(-1)
+        targets_list.append(target)
         acc1, acc5 = compute_accuracy(output, target, topk=(1, 5))
         # FIXME need to take into account that the datasets
         # could have been padded in distributed setup
@@ -106,7 +107,11 @@ def evaluate(model, data_loader, device, device_ids, distributed, log_freq=1000,
         metric_logger.meters['acc1'].update(acc1.item(), n=batch_size)
         metric_logger.meters['acc5'].update(acc5.item(), n=batch_size)
 
-    # gather the stats from all processes
+    targets_list=torch.cat(targets_list,0)
+    global outs
+    outs=torch.cat(outs,0)
+    from SST.utils.TENS import T_SNE
+    T_SNE(outs,targets_list,if_save_image=True,title="w/o data augmentation")
     metric_logger.synchronize_between_processes()
     top1_accuracy = metric_logger.acc1.global_avg
     top5_accuracy = metric_logger.acc5.global_avg
@@ -130,19 +135,18 @@ def main(args):
     teacher_model_config = models_config.get('teacher_model', None)
     teacher_model =\
         load_model(teacher_model_config, device, distributed) if teacher_model_config is not None else None
-    teacher_model.layer1.register_forward_hook(layer_hook)
-    teacher_model.layer2.register_forward_hook(layer_hook)
-    teacher_model.layer3.register_forward_hook(layer_hook)
+    teacher_model.avgpool.register_forward_hook(layer_hook)
     student_model_config =\
         models_config['student_model'] if 'student_model' in models_config else models_config['model']
     if args.log_config:
         logger.info(config)
-    test_config = config['test']
-    test_data_loader_config = test_config['test_data_loader']
-    test_data_loader = util.build_data_loader(dataset_dict[test_data_loader_config['dataset_id']],
-                                              test_data_loader_config, distributed)
-    log_freq = test_config.get('log_freq', 1000)
-    evaluate(teacher_model, test_data_loader, device, device_ids, distributed, log_freq=log_freq,
+    train_config = config['train']
+    print(train_config['stage1'])
+    train_data_loader_config = train_config['stage1']['train_data_loader']
+    train_data_loader = util.build_data_loader(dataset_dict[train_data_loader_config['dataset_id']],
+                                              train_data_loader_config, distributed)
+    log_freq = train_config.get('log_freq', 1000)
+    evaluate(teacher_model, train_data_loader, device, device_ids, distributed, log_freq=log_freq,
              title='[Student: {}]'.format(student_model_config['name']))
 
 

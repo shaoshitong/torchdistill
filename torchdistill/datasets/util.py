@@ -175,11 +175,12 @@ def build_data_loader(dataset, data_loader_config, distributed, accelerator=None
     dataset_wrapper_config = data_loader_config.get('dataset_wrapper', None)
     if isinstance(dataset_wrapper_config, dict) and len(dataset_wrapper_config) > 0:
         dataset = get_dataset_wrapper(dataset_wrapper_config['name'], dataset, **dataset_wrapper_config['params'])
+        print(dataset)
     elif cache_dir_path is not None:
         dataset = CacheableDataset(dataset, cache_dir_path, idx2subpath_func=default_idx2subpath)
     elif data_loader_config.get('requires_supp', False):
-        dataset = BaseDatasetWrapper(dataset)
 
+        dataset = BaseDatasetWrapper(dataset)
     sampler = DistributedSampler(dataset) if distributed and accelerator is None \
         else RandomSampler(dataset) if data_loader_config.get('random_sample', False) else SequentialSampler(dataset)
     batch_sampler_config = data_loader_config.get('batch_sampler', None)
