@@ -2,7 +2,7 @@ datasets:
   cifar100:
     name: &dataset_name 'cifar100'
     type: 'CIFAR100'
-    root: &root_dir !join ['D:/data/data/', *dataset_name]
+    root: &root_dir !join ['/home/qiuziming/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar100_train !join [ *dataset_name, '/train' ]
@@ -142,7 +142,7 @@ train:
               num_classes: *num_classes
           factor: 1.0
   stage2:
-    num_epochs: 480
+    num_epochs: 240
     teacher:
       forward_proc: 'forward_batch_target_policy'
       sequential: []
@@ -193,7 +193,7 @@ train:
     scheduler:
       type: 'MultiStepLR'
       params:
-        milestones: [300,360,420]
+        milestones: [150,180,210]
         gamma: 0.1
     criterion:
       type: 'GeneralizedCustomLoss'
@@ -216,7 +216,7 @@ train:
               policy_nums: *policy_nums
               loss_weights: [ 1.0, 1.0, 0.0]
               p_t: 5
-              option: 0
+              option: 3
               negative_loss_weight: *negative_loss_weight
               positive_loss_weight: *positive_loss_weight
               kd_and_ce_weight: [0.0 , 0.0]

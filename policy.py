@@ -9,7 +9,7 @@ if __name__ == "__main__":
     positive_policy_weight = [0, 0, 0]
 
     for i in range(len(negative_identity_weight)):
-        log = f'log/cifar10/icpkd/resnet18_from_resnet50_option_1_{i}_2倍.txt'
+        log = f'log/cifar100/kd/icpkd/wrn16_2_from_wrn40_2_option_3_2倍_{i}.txt'
         os.system("rm -rf ./resource")
         os.system(f"python ./SST/image_classification_policy.py --log {log}")
         print(f"============================end {i}================================")

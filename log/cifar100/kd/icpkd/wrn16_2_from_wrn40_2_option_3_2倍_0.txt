@@ -1,0 +1,252 @@
+2022-05-10 16:45:04,220	INFO	torchdistill.common.main_util	Not using distributed mode
+2022-05-10 16:45:04,220	INFO	__main__	Namespace(adjust_lr=False, config='configs/sample/cifar100/kd/wide_resnet16_2_from_wide_resnet40_2_policy.yaml', device='cuda', dist_url='env://', ema=False, log='log/cifar100/kd/icpkd/wrn16_2_from_wrn40_2_option_3_2倍_0.txt', log_config=False, negative_weight_loss=None, positive_weight_loss=None, seed=None, start_epoch=0, student_only=False, test_only=False, world_size=1)
+2022-05-10 16:45:04,237	INFO	torchdistill.datasets.util	Loading train data
+2022-05-10 16:45:04,820	INFO	torchdistill.datasets.util	dataset_id `cifar100/train`: 0.583897590637207 sec
+2022-05-10 16:45:04,821	INFO	torchdistill.datasets.util	Loading val data
+2022-05-10 16:45:05,262	INFO	torchdistill.datasets.util	dataset_id `cifar100/val`: 0.44098949432373047 sec
+2022-05-10 16:45:05,262	INFO	torchdistill.datasets.util	Loading test data
+2022-05-10 16:45:05,692	INFO	torchdistill.datasets.util	dataset_id `cifar100/test`: 0.4302523136138916 sec
+2022-05-10 16:45:07,852	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar100/teacher/cifar100-wide_resnet40_2.pt`
+2022-05-10 16:45:07,866	INFO	torchdistill.common.main_util	ckpt file is not found at `./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt`
+2022-05-10 16:45:07,868	INFO	__main__	Start training
+2022-05-10 16:45:07,871	INFO	torchdistill.models.util	[teacher model]
+2022-05-10 16:45:07,871	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
+2022-05-10 16:45:07,871	INFO	torchdistill.models.util	Frozen module(s): {'model'}
+2022-05-10 16:45:07,872	INFO	torchdistill.models.util	[student model]
+2022-05-10 16:45:07,872	INFO	torchdistill.models.util	Using the EmptyModule student model
+2022-05-10 16:45:07,872	INFO	torchdistill.core.distillation	Loss = 1.0 * AuxPolicyKDLoss(
+  (linear): Linear(in_features=256, out_features=16, bias=True)
+  (mse): MSELoss()
+  (kl): KLDivLoss()
+  (bce): BCEWithLogitsLoss()
+)
+2022-05-10 16:45:07,872	INFO	torchdistill.core.distillation	Freezing the whole student model
+2022-05-10 16:45:07,873	INFO	torchdistill.core.distillation	Note that you are training some/all of the modules in the teacher model
+2022-05-10 16:45:07,874	INFO	torchdistill.core.distillation	Started stage 1
+2022-05-10 16:45:08,691	INFO	torchdistill.misc.log	Epoch: [0]  [  0/391]  eta: 0:05:19  lr: 0.1  img/s: 224.4058969825406  loss: 0.0255 (0.0255)  time: 0.8166  data: 0.2461  max mem: 452
+2022-05-10 16:45:10,797	INFO	torchdistill.misc.log	Epoch: [0]  [100/391]  eta: 0:00:08  lr: 0.1  img/s: 8324.096254031258  loss: 0.0182 (0.0190)  time: 0.0216  data: 0.0061  max mem: 452
+2022-05-10 16:45:12,987	INFO	torchdistill.misc.log	Epoch: [0]  [200/391]  eta: 0:00:04  lr: 0.1  img/s: 7968.044643652231  loss: 0.0185 (0.0187)  time: 0.0219  data: 0.0055  max mem: 452
+2022-05-10 16:45:15,189	INFO	torchdistill.misc.log	Epoch: [0]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 8099.921727191804  loss: 0.0184 (0.0186)  time: 0.0219  data: 0.0064  max mem: 452
+2022-05-10 16:45:17,231	INFO	torchdistill.misc.log	Epoch: [0] Total time: 0:00:09
+2022-05-10 16:45:17,423	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 2.3438 (2.3438)  acc5: 5.4688 (5.4688)  time: 0.1913  data: 0.1860  max mem: 452
+2022-05-10 16:45:17,778	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:45:17,778	INFO	__main__	 * Acc@1 1.4800	Acc@5 5.0100
+
+2022-05-10 16:45:17,779	INFO	__main__	Best top-1 accuracy: 0.0000 -> 1.4800
+2022-05-10 16:45:17,779	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:45:17,790	INFO	torchdistill.models.util	[teacher model]
+2022-05-10 16:45:17,790	INFO	torchdistill.models.util	Using the WrapperPolicy teacher model
+2022-05-10 16:45:17,790	INFO	torchdistill.models.util	Frozen module(s): {'model'}
+2022-05-10 16:45:17,792	INFO	torchdistill.models.util	[student model]
+2022-05-10 16:45:17,792	INFO	torchdistill.models.util	Using the WrapperPolicy student model
+2022-05-10 16:45:17,792	INFO	torchdistill.models.util	Frozen module(s): {'policy_module'}
+2022-05-10 16:45:17,794	INFO	torchdistill.core.distillation	Loss = 1.0 * PolicyLoss(
+  (cross_entropy_loss): CrossEntropyLoss()
+  (kldiv_loss): KLDivLoss()
+  (linear1): Linear(in_features=256, out_features=16, bias=True)
+  (linear2): Linear(in_features=256, out_features=16, bias=True)
+  (mse): MSELoss()
+  (bce): BCEWithLogitsLoss()
+  (kd): KLDivLoss()
+)
+2022-05-10 16:45:17,794	INFO	torchdistill.core.distillation	Freezing the whole teacher model
+2022-05-10 16:45:17,796	INFO	torchdistill.core.distillation	Advanced to stage 2
+2022-05-10 16:45:18,150	INFO	torchdistill.misc.log	Epoch: [1]  [  0/391]  eta: 0:02:18  lr: 0.1  img/s: 1123.9697857872611  loss: 9.3978 (9.3978)  time: 0.3538  data: 0.2398  max mem: 867
+2022-05-10 16:45:21,296	INFO	torchdistill.misc.log	Epoch: [1]  [100/391]  eta: 0:00:10  lr: 0.1  img/s: 4145.881400826287  loss: 7.4702 (8.0222)  time: 0.0314  data: 0.0001  max mem: 867
+2022-05-10 16:45:24,425	INFO	torchdistill.misc.log	Epoch: [1]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4104.894271645717  loss: 6.8492 (7.5815)  time: 0.0312  data: 0.0001  max mem: 867
+2022-05-10 16:45:27,558	INFO	torchdistill.misc.log	Epoch: [1]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4153.097485882262  loss: 6.4663 (7.2659)  time: 0.0313  data: 0.0001  max mem: 867
+2022-05-10 16:45:30,475	INFO	torchdistill.misc.log	Epoch: [1] Total time: 0:00:12
+2022-05-10 16:45:30,669	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 17.9688 (17.9688)  acc5: 42.5781 (42.5781)  time: 0.1923  data: 0.1870  max mem: 867
+2022-05-10 16:45:30,988	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:45:30,988	INFO	__main__	 * Acc@1 16.7400	Acc@5 44.1100
+
+2022-05-10 16:45:30,988	INFO	__main__	Best top-1 accuracy: 1.4800 -> 16.7400
+2022-05-10 16:45:30,988	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:45:31,271	INFO	torchdistill.misc.log	Epoch: [2]  [  0/391]  eta: 0:01:46  lr: 0.1  img/s: 4081.4270336019463  loss: 6.0662 (6.0662)  time: 0.2729  data: 0.2415  max mem: 867
+2022-05-10 16:45:34,407	INFO	torchdistill.misc.log	Epoch: [2]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4109.10429072206  loss: 5.7861 (5.9041)  time: 0.0313  data: 0.0001  max mem: 867
+2022-05-10 16:45:37,551	INFO	torchdistill.misc.log	Epoch: [2]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4143.609527190775  loss: 5.4856 (5.7398)  time: 0.0314  data: 0.0001  max mem: 867
+2022-05-10 16:45:40,701	INFO	torchdistill.misc.log	Epoch: [2]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4129.553885560008  loss: 5.2897 (5.5992)  time: 0.0315  data: 0.0001  max mem: 867
+2022-05-10 16:45:43,616	INFO	torchdistill.misc.log	Epoch: [2] Total time: 0:00:12
+2022-05-10 16:45:43,808	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 29.6875 (29.6875)  acc5: 65.2344 (65.2344)  time: 0.1899  data: 0.1847  max mem: 867
+2022-05-10 16:45:44,125	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:45:44,125	INFO	__main__	 * Acc@1 27.4600	Acc@5 61.2500
+
+2022-05-10 16:45:44,125	INFO	__main__	Best top-1 accuracy: 16.7400 -> 27.4600
+2022-05-10 16:45:44,125	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:45:44,414	INFO	torchdistill.misc.log	Epoch: [3]  [  0/391]  eta: 0:01:49  lr: 0.1  img/s: 3705.8549468147526  loss: 4.8507 (4.8507)  time: 0.2799  data: 0.2452  max mem: 867
+2022-05-10 16:45:47,603	INFO	torchdistill.misc.log	Epoch: [3]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4127.141225217745  loss: 4.7947 (4.9037)  time: 0.0320  data: 0.0001  max mem: 867
+2022-05-10 16:45:50,780	INFO	torchdistill.misc.log	Epoch: [3]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4115.340896547495  loss: 4.6972 (4.8240)  time: 0.0317  data: 0.0001  max mem: 867
+2022-05-10 16:45:53,966	INFO	torchdistill.misc.log	Epoch: [3]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4105.7732639951055  loss: 4.6504 (4.7606)  time: 0.0322  data: 0.0001  max mem: 867
+2022-05-10 16:45:56,881	INFO	torchdistill.misc.log	Epoch: [3] Total time: 0:00:12
+2022-05-10 16:45:57,080	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 37.5000 (37.5000)  acc5: 69.5312 (69.5312)  time: 0.1973  data: 0.1919  max mem: 867
+2022-05-10 16:45:57,433	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:45:57,433	INFO	__main__	 * Acc@1 38.0600	Acc@5 71.3300
+
+2022-05-10 16:45:57,433	INFO	__main__	Best top-1 accuracy: 27.4600 -> 38.0600
+2022-05-10 16:45:57,433	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:45:57,718	INFO	torchdistill.misc.log	Epoch: [4]  [  0/391]  eta: 0:01:48  lr: 0.1  img/s: 4019.7585468485604  loss: 4.1912 (4.1912)  time: 0.2767  data: 0.2448  max mem: 867
+2022-05-10 16:46:00,882	INFO	torchdistill.misc.log	Epoch: [4]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4027.7804519401016  loss: 4.2329 (4.3171)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:46:04,046	INFO	torchdistill.misc.log	Epoch: [4]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4114.741613335888  loss: 4.0890 (4.2576)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:46:07,216	INFO	torchdistill.misc.log	Epoch: [4]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4086.02435460302  loss: 4.1116 (4.2129)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:46:10,117	INFO	torchdistill.misc.log	Epoch: [4] Total time: 0:00:12
+2022-05-10 16:46:10,315	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 43.3594 (43.3594)  acc5: 79.6875 (79.6875)  time: 0.1963  data: 0.1906  max mem: 867
+2022-05-10 16:46:10,635	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:46:10,635	INFO	__main__	 * Acc@1 43.0200	Acc@5 76.2300
+
+2022-05-10 16:46:10,635	INFO	__main__	Best top-1 accuracy: 38.0600 -> 43.0200
+2022-05-10 16:46:10,635	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:46:10,925	INFO	torchdistill.misc.log	Epoch: [5]  [  0/391]  eta: 0:01:48  lr: 0.1  img/s: 3886.257379873467  loss: 4.2888 (4.2888)  time: 0.2777  data: 0.2447  max mem: 867
+2022-05-10 16:46:14,106	INFO	torchdistill.misc.log	Epoch: [5]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 3947.202929131774  loss: 3.9076 (3.9243)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:46:17,276	INFO	torchdistill.misc.log	Epoch: [5]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4038.1718704164755  loss: 3.7461 (3.8651)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:46:20,453	INFO	torchdistill.misc.log	Epoch: [5]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 3944.795673642135  loss: 3.7521 (3.8451)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:46:23,370	INFO	torchdistill.misc.log	Epoch: [5] Total time: 0:00:12
+2022-05-10 16:46:23,555	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 53.9062 (53.9062)  acc5: 81.6406 (81.6406)  time: 0.1828  data: 0.1775  max mem: 867
+2022-05-10 16:46:23,881	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:46:23,881	INFO	__main__	 * Acc@1 48.0600	Acc@5 79.5900
+
+2022-05-10 16:46:23,881	INFO	__main__	Best top-1 accuracy: 43.0200 -> 48.0600
+2022-05-10 16:46:23,881	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:46:24,165	INFO	torchdistill.misc.log	Epoch: [6]  [  0/391]  eta: 0:01:46  lr: 0.1  img/s: 4115.1831735154565  loss: 4.0458 (4.0458)  time: 0.2720  data: 0.2407  max mem: 867
+2022-05-10 16:46:27,343	INFO	torchdistill.misc.log	Epoch: [6]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 3991.991136689792  loss: 3.5314 (3.5996)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:46:30,527	INFO	torchdistill.misc.log	Epoch: [6]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4099.127386006169  loss: 3.4930 (3.5939)  time: 0.0319  data: 0.0001  max mem: 867
+2022-05-10 16:46:33,707	INFO	torchdistill.misc.log	Epoch: [6]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4078.5744499817674  loss: 3.6825 (3.5809)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:46:36,633	INFO	torchdistill.misc.log	Epoch: [6] Total time: 0:00:12
+2022-05-10 16:46:36,831	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 50.3906 (50.3906)  acc5: 82.0312 (82.0312)  time: 0.1964  data: 0.1909  max mem: 867
+2022-05-10 16:46:37,148	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:46:37,148	INFO	__main__	 * Acc@1 48.0400	Acc@5 79.7100
+
+2022-05-10 16:46:37,427	INFO	torchdistill.misc.log	Epoch: [7]  [  0/391]  eta: 0:01:48  lr: 0.1  img/s: 4082.5133036766665  loss: 3.4507 (3.4507)  time: 0.2780  data: 0.2465  max mem: 867
+2022-05-10 16:46:40,610	INFO	torchdistill.misc.log	Epoch: [7]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4019.668256452108  loss: 3.3428 (3.3516)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:46:43,797	INFO	torchdistill.misc.log	Epoch: [7]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4038.688291758192  loss: 3.4459 (3.3592)  time: 0.0319  data: 0.0001  max mem: 867
+2022-05-10 16:46:46,993	INFO	torchdistill.misc.log	Epoch: [7]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4097.0940421407695  loss: 3.2696 (3.3487)  time: 0.0320  data: 0.0001  max mem: 867
+2022-05-10 16:46:49,923	INFO	torchdistill.misc.log	Epoch: [7] Total time: 0:00:12
+2022-05-10 16:46:50,115	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 53.9062 (53.9062)  acc5: 85.9375 (85.9375)  time: 0.1902  data: 0.1847  max mem: 867
+2022-05-10 16:46:50,422	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:46:50,422	INFO	__main__	 * Acc@1 53.8900	Acc@5 83.7800
+
+2022-05-10 16:46:50,422	INFO	__main__	Best top-1 accuracy: 48.0600 -> 53.8900
+2022-05-10 16:46:50,422	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:46:50,713	INFO	torchdistill.misc.log	Epoch: [8]  [  0/391]  eta: 0:01:49  lr: 0.1  img/s: 4103.545123097737  loss: 3.2629 (3.2629)  time: 0.2803  data: 0.2490  max mem: 867
+2022-05-10 16:46:53,892	INFO	torchdistill.misc.log	Epoch: [8]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4081.551149495195  loss: 3.1623 (3.2064)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:46:57,078	INFO	torchdistill.misc.log	Epoch: [8]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4036.4109558143555  loss: 3.1543 (3.2265)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:47:00,263	INFO	torchdistill.misc.log	Epoch: [8]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4064.309597710721  loss: 3.2707 (3.2078)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:47:03,192	INFO	torchdistill.misc.log	Epoch: [8] Total time: 0:00:12
+2022-05-10 16:47:03,383	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 58.5938 (58.5938)  acc5: 85.9375 (85.9375)  time: 0.1893  data: 0.1840  max mem: 867
+2022-05-10 16:47:03,707	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:47:03,707	INFO	__main__	 * Acc@1 53.7500	Acc@5 83.6600
+
+2022-05-10 16:47:03,986	INFO	torchdistill.misc.log	Epoch: [9]  [  0/391]  eta: 0:01:48  lr: 0.1  img/s: 3888.5936999775463  loss: 2.9429 (2.9429)  time: 0.2777  data: 0.2447  max mem: 867
+2022-05-10 16:47:07,152	INFO	torchdistill.misc.log	Epoch: [9]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4093.65759033756  loss: 3.1415 (3.0670)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:47:10,324	INFO	torchdistill.misc.log	Epoch: [9]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 3949.700295011293  loss: 3.1035 (3.0638)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:47:13,491	INFO	torchdistill.misc.log	Epoch: [9]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 3916.9931271979103  loss: 2.9599 (3.0628)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:47:16,408	INFO	torchdistill.misc.log	Epoch: [9] Total time: 0:00:12
+2022-05-10 16:47:16,596	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 64.0625 (64.0625)  acc5: 85.9375 (85.9375)  time: 0.1863  data: 0.1810  max mem: 867
+2022-05-10 16:47:16,918	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:47:16,918	INFO	__main__	 * Acc@1 57.4000	Acc@5 85.9300
+
+2022-05-10 16:47:16,918	INFO	__main__	Best top-1 accuracy: 53.8900 -> 57.4000
+2022-05-10 16:47:16,918	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:47:17,196	INFO	torchdistill.misc.log	Epoch: [10]  [  0/391]  eta: 0:01:44  lr: 0.1  img/s: 4149.085451524402  loss: 3.1120 (3.1120)  time: 0.2680  data: 0.2370  max mem: 867
+2022-05-10 16:47:20,358	INFO	torchdistill.misc.log	Epoch: [10]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4034.105873778018  loss: 2.8970 (2.9893)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:47:23,528	INFO	torchdistill.misc.log	Epoch: [10]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 3922.7171311247826  loss: 2.9893 (2.9670)  time: 0.0317  data: 0.0001  max mem: 867
+2022-05-10 16:47:26,692	INFO	torchdistill.misc.log	Epoch: [10]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 3972.1432682988184  loss: 2.9025 (2.9596)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:47:29,602	INFO	torchdistill.misc.log	Epoch: [10] Total time: 0:00:12
+2022-05-10 16:47:29,779	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 60.5469 (60.5469)  acc5: 86.3281 (86.3281)  time: 0.1756  data: 0.1698  max mem: 867
+2022-05-10 16:47:30,108	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:47:30,109	INFO	__main__	 * Acc@1 55.7800	Acc@5 84.7600
+
+2022-05-10 16:47:30,394	INFO	torchdistill.misc.log	Epoch: [11]  [  0/391]  eta: 0:01:51  lr: 0.1  img/s: 4142.682294841622  loss: 2.8507 (2.8507)  time: 0.2846  data: 0.2536  max mem: 867
+2022-05-10 16:47:33,562	INFO	torchdistill.misc.log	Epoch: [11]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 3969.353305632366  loss: 2.9622 (2.8646)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:47:36,730	INFO	torchdistill.misc.log	Epoch: [11]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 3987.395552650733  loss: 2.7778 (2.8786)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:47:39,904	INFO	torchdistill.misc.log	Epoch: [11]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4082.0787262676877  loss: 2.7718 (2.8745)  time: 0.0317  data: 0.0001  max mem: 867
+2022-05-10 16:47:42,818	INFO	torchdistill.misc.log	Epoch: [11] Total time: 0:00:12
+2022-05-10 16:47:42,994	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:06  acc1: 58.9844 (58.9844)  acc5: 85.5469 (85.5469)  time: 0.1741  data: 0.1687  max mem: 867
+2022-05-10 16:47:43,313	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:47:43,313	INFO	__main__	 * Acc@1 56.7600	Acc@5 86.5200
+
+2022-05-10 16:47:43,591	INFO	torchdistill.misc.log	Epoch: [12]  [  0/391]  eta: 0:01:48  lr: 0.1  img/s: 4108.758366815903  loss: 2.8866 (2.8866)  time: 0.2774  data: 0.2462  max mem: 867
+2022-05-10 16:47:46,760	INFO	torchdistill.misc.log	Epoch: [12]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4020.78212156616  loss: 2.7928 (2.7704)  time: 0.0317  data: 0.0001  max mem: 867
+2022-05-10 16:47:49,933	INFO	torchdistill.misc.log	Epoch: [12]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4074.859675754448  loss: 2.7321 (2.7782)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:47:53,111	INFO	torchdistill.misc.log	Epoch: [12]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4040.8161250018816  loss: 2.8005 (2.7917)  time: 0.0317  data: 0.0001  max mem: 867
+2022-05-10 16:47:56,029	INFO	torchdistill.misc.log	Epoch: [12] Total time: 0:00:12
+2022-05-10 16:47:56,208	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 64.4531 (64.4531)  acc5: 87.5000 (87.5000)  time: 0.1779  data: 0.1726  max mem: 867
+2022-05-10 16:47:56,551	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:47:56,551	INFO	__main__	 * Acc@1 59.5700	Acc@5 87.6300
+
+2022-05-10 16:47:56,551	INFO	__main__	Best top-1 accuracy: 57.4000 -> 59.5700
+2022-05-10 16:47:56,551	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:47:56,835	INFO	torchdistill.misc.log	Epoch: [13]  [  0/391]  eta: 0:01:47  lr: 0.1  img/s: 4099.252580783092  loss: 2.5578 (2.5578)  time: 0.2739  data: 0.2426  max mem: 867
+2022-05-10 16:48:00,012	INFO	torchdistill.misc.log	Epoch: [13]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 3979.2385893653923  loss: 2.6460 (2.7018)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:03,191	INFO	torchdistill.misc.log	Epoch: [13]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4032.0153809180483  loss: 2.7568 (2.7262)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:06,363	INFO	torchdistill.misc.log	Epoch: [13]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4083.1653433117335  loss: 2.7489 (2.7325)  time: 0.0317  data: 0.0001  max mem: 867
+2022-05-10 16:48:09,282	INFO	torchdistill.misc.log	Epoch: [13] Total time: 0:00:12
+2022-05-10 16:48:09,484	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 62.5000 (62.5000)  acc5: 85.1562 (85.1562)  time: 0.1994  data: 0.1941  max mem: 867
+2022-05-10 16:48:09,797	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:48:09,797	INFO	__main__	 * Acc@1 57.4900	Acc@5 84.7400
+
+2022-05-10 16:48:10,077	INFO	torchdistill.misc.log	Epoch: [14]  [  0/391]  eta: 0:01:49  lr: 0.1  img/s: 4085.4646678334984  loss: 2.8189 (2.8189)  time: 0.2790  data: 0.2476  max mem: 867
+2022-05-10 16:48:13,258	INFO	torchdistill.misc.log	Epoch: [14]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 3963.375452169676  loss: 2.7278 (2.7008)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:16,436	INFO	torchdistill.misc.log	Epoch: [14]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4051.305573582457  loss: 2.5798 (2.6912)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:19,614	INFO	torchdistill.misc.log	Epoch: [14]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 3983.963193279805  loss: 2.7023 (2.6849)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:22,533	INFO	torchdistill.misc.log	Epoch: [14] Total time: 0:00:12
+2022-05-10 16:48:22,718	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 67.5781 (67.5781)  acc5: 87.5000 (87.5000)  time: 0.1837  data: 0.1784  max mem: 867
+2022-05-10 16:48:23,079	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:48:23,079	INFO	__main__	 * Acc@1 60.1300	Acc@5 87.2600
+
+2022-05-10 16:48:23,079	INFO	__main__	Best top-1 accuracy: 59.5700 -> 60.1300
+2022-05-10 16:48:23,080	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:48:23,363	INFO	torchdistill.misc.log	Epoch: [15]  [  0/391]  eta: 0:01:46  lr: 0.1  img/s: 3994.486075459625  loss: 2.6626 (2.6626)  time: 0.2735  data: 0.2414  max mem: 867
+2022-05-10 16:48:26,550	INFO	torchdistill.misc.log	Epoch: [15]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 3849.3924241229233  loss: 2.5767 (2.6199)  time: 0.0320  data: 0.0001  max mem: 867
+2022-05-10 16:48:29,734	INFO	torchdistill.misc.log	Epoch: [15]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4108.349622736803  loss: 2.6832 (2.6308)  time: 0.0317  data: 0.0001  max mem: 867
+2022-05-10 16:48:32,916	INFO	torchdistill.misc.log	Epoch: [15]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4065.1097313505165  loss: 2.6711 (2.6320)  time: 0.0316  data: 0.0001  max mem: 867
+2022-05-10 16:48:35,857	INFO	torchdistill.misc.log	Epoch: [15] Total time: 0:00:12
+2022-05-10 16:48:36,048	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 66.4062 (66.4062)  acc5: 91.0156 (91.0156)  time: 0.1892  data: 0.1834  max mem: 867
+2022-05-10 16:48:36,360	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:48:36,360	INFO	__main__	 * Acc@1 59.8500	Acc@5 87.4700
+
+2022-05-10 16:48:36,637	INFO	torchdistill.misc.log	Epoch: [16]  [  0/391]  eta: 0:01:47  lr: 0.1  img/s: 3859.2155498368243  loss: 2.4854 (2.4854)  time: 0.2762  data: 0.2429  max mem: 867
+2022-05-10 16:48:39,826	INFO	torchdistill.misc.log	Epoch: [16]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4012.4581430632056  loss: 2.6071 (2.5613)  time: 0.0320  data: 0.0001  max mem: 867
+2022-05-10 16:48:43,002	INFO	torchdistill.misc.log	Epoch: [16]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4091.754405219194  loss: 2.5863 (2.5792)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:46,181	INFO	torchdistill.misc.log	Epoch: [16]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 3987.425167668095  loss: 2.6494 (2.5860)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:49,101	INFO	torchdistill.misc.log	Epoch: [16] Total time: 0:00:12
+2022-05-10 16:48:49,287	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 62.8906 (62.8906)  acc5: 87.8906 (87.8906)  time: 0.1840  data: 0.1787  max mem: 867
+2022-05-10 16:48:49,626	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:48:49,626	INFO	__main__	 * Acc@1 59.6800	Acc@5 87.1000
+
+2022-05-10 16:48:49,906	INFO	torchdistill.misc.log	Epoch: [17]  [  0/391]  eta: 0:01:48  lr: 0.1  img/s: 4125.682299871666  loss: 2.7531 (2.7531)  time: 0.2784  data: 0.2472  max mem: 867
+2022-05-10 16:48:53,087	INFO	torchdistill.misc.log	Epoch: [17]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 3841.4049327771377  loss: 2.5565 (2.5443)  time: 0.0319  data: 0.0001  max mem: 867
+2022-05-10 16:48:56,266	INFO	torchdistill.misc.log	Epoch: [17]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4087.0508453931593  loss: 2.4287 (2.5245)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:48:59,531	INFO	torchdistill.misc.log	Epoch: [17]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4134.2284922223935  loss: 2.5516 (2.5436)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:49:02,462	INFO	torchdistill.misc.log	Epoch: [17] Total time: 0:00:12
+2022-05-10 16:49:02,658	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 65.2344 (65.2344)  acc5: 89.0625 (89.0625)  time: 0.1939  data: 0.1885  max mem: 867
+2022-05-10 16:49:02,983	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:49:02,983	INFO	__main__	 * Acc@1 61.2000	Acc@5 87.8800
+
+2022-05-10 16:49:02,983	INFO	__main__	Best top-1 accuracy: 60.1300 -> 61.2000
+2022-05-10 16:49:02,983	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:49:03,275	INFO	torchdistill.misc.log	Epoch: [18]  [  0/391]  eta: 0:01:50  lr: 0.1  img/s: 3929.0616432842266  loss: 2.3323 (2.3323)  time: 0.2827  data: 0.2500  max mem: 867
+2022-05-10 16:49:06,475	INFO	torchdistill.misc.log	Epoch: [18]  [100/391]  eta: 0:00:10  lr: 0.1  img/s: 3963.5217529327515  loss: 2.5154 (2.4836)  time: 0.0320  data: 0.0001  max mem: 867
+2022-05-10 16:49:09,656	INFO	torchdistill.misc.log	Epoch: [18]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4098.657973692046  loss: 2.4703 (2.4874)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:49:12,848	INFO	torchdistill.misc.log	Epoch: [18]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 4101.0061109753115  loss: 2.4688 (2.4984)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:49:15,777	INFO	torchdistill.misc.log	Epoch: [18] Total time: 0:00:12
+2022-05-10 16:49:15,958	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 68.3594 (68.3594)  acc5: 89.0625 (89.0625)  time: 0.1788  data: 0.1734  max mem: 867
+2022-05-10 16:49:16,269	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:49:16,269	INFO	__main__	 * Acc@1 62.6300	Acc@5 88.1700
+
+2022-05-10 16:49:16,269	INFO	__main__	Best top-1 accuracy: 61.2000 -> 62.6300
+2022-05-10 16:49:16,269	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:49:16,555	INFO	torchdistill.misc.log	Epoch: [19]  [  0/391]  eta: 0:01:47  lr: 0.1  img/s: 4082.947973625571  loss: 2.3358 (2.3358)  time: 0.2747  data: 0.2432  max mem: 867
+2022-05-10 16:49:19,746	INFO	torchdistill.misc.log	Epoch: [19]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4049.747014762124  loss: 2.4703 (2.4720)  time: 0.0320  data: 0.0001  max mem: 867
+2022-05-10 16:49:22,942	INFO	torchdistill.misc.log	Epoch: [19]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 3982.0720060524245  loss: 2.4736 (2.4785)  time: 0.0321  data: 0.0001  max mem: 867
+2022-05-10 16:49:26,124	INFO	torchdistill.misc.log	Epoch: [19]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 3898.8446768336967  loss: 2.5157 (2.4782)  time: 0.0319  data: 0.0001  max mem: 867
+2022-05-10 16:49:29,044	INFO	torchdistill.misc.log	Epoch: [19] Total time: 0:00:12
+2022-05-10 16:49:29,237	INFO	torchdistill.misc.log	Validation:  [ 0/40]  eta: 0:00:07  acc1: 69.5312 (69.5312)  acc5: 91.0156 (91.0156)  time: 0.1907  data: 0.1851  max mem: 867
+2022-05-10 16:49:29,562	INFO	torchdistill.misc.log	Validation: Total time: 0:00:00
+2022-05-10 16:49:29,562	INFO	__main__	 * Acc@1 63.5900	Acc@5 89.3300
+
+2022-05-10 16:49:29,562	INFO	__main__	Best top-1 accuracy: 62.6300 -> 63.5900
+2022-05-10 16:49:29,562	INFO	__main__	Updating ckpt at ./resource/ckpt/cifar100/kd/cifar100-wide_resnet16_2_from_wide_resnet40_2-final_run.pt
+2022-05-10 16:49:29,858	INFO	torchdistill.misc.log	Epoch: [20]  [  0/391]  eta: 0:01:51  lr: 0.1  img/s: 4114.710076949017  loss: 2.3660 (2.3660)  time: 0.2852  data: 0.2540  max mem: 867
+2022-05-10 16:49:33,042	INFO	torchdistill.misc.log	Epoch: [20]  [100/391]  eta: 0:00:09  lr: 0.1  img/s: 4001.6615136924015  loss: 2.4620 (2.4320)  time: 0.0318  data: 0.0001  max mem: 867
+2022-05-10 16:49:36,234	INFO	torchdistill.misc.log	Epoch: [20]  [200/391]  eta: 0:00:06  lr: 0.1  img/s: 4040.4816027334373  loss: 2.4140 (2.4424)  time: 0.0319  data: 0.0001  max mem: 867
+2022-05-10 16:49:39,421	INFO	torchdistill.misc.log	Epoch: [20]  [300/391]  eta: 0:00:02  lr: 0.1  img/s: 3999.5151153955035  loss: 2.4905 (2.4403)  time: 0.0319  data: 0.0001  max mem: 867
