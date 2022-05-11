@@ -109,7 +109,10 @@ def load_ckpt(ckpt_file_path, model=None, optimizer=None, lr_scheduler=None, str
                 model.load_state_dict(ckpt['model'], strict=strict)
         elif optimizer is None and lr_scheduler is None:
             logger.info('Loading model parameters only')
-            model.load_state_dict(ckpt, strict=strict)
+            if 'net' in ckpt:
+                model.load_state_dict(ckpt['net'], strict=strict)
+            else:
+                model.load_state_dict(ckpt, strict=strict)
         else:
             logger.info('No model parameters found')
 

@@ -3,7 +3,7 @@ import datetime
 import os, sys
 import time
 
-os.chdir('/home/qiuziming/product/torchdistill')
+os.chdir('G:/Alex/torchdistill')
 root = os.getcwd()
 sys.path.append(root)
 import torch
@@ -63,6 +63,7 @@ def load_model(model_config, device, distributed):
         model = get_model(model_config['name'], repo_or_dir, **model_config['params'])
     ckpt_file_path = model_config.get('ckpt', None)
     if ckpt_file_path:
+        print("successfully load model!")
         load_ckpt(ckpt_file_path, model=model, strict=True)
     return model.to(device)
 
@@ -154,8 +155,8 @@ def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, de
             logger.info('Best top-1 accuracy: {:.4f} -> {:.4f}'.format(best_val_top1_accuracy, val_top1_accuracy))
             logger.info('Updating ckpt at {}'.format(ckpt_file_path))
             best_val_top1_accuracy = val_top1_accuracy
-            save_ckpt(student_model_without_ddp, optimizer, lr_scheduler,
-                      best_val_top1_accuracy, config, args, ckpt_file_path)
+            # save_ckpt(student_model_without_ddp, optimizer, lr_scheduler,
+            #           best_val_top1_accuracy, config, args, ckpt_file_path)
         training_box.post_process()
 
     if distributed:
