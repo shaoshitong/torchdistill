@@ -242,9 +242,11 @@ class PolicyLoss(nn.Module):
         elif self.option==3:
             kl_loss=kl_loss_augment
             return ce_loss+kl_loss
+        elif self.option==4:
+            kl_loss=(kl_loss_augment+kl_loss_origin)/2
+            return ce_loss+kl_loss
         else:
             kl_loss=(kl_loss_augment+kl_loss_origin)/2
-
         """===================================================Policy Loss==================================================="""
         student_policy_module_outputs = student_io_dict[self.student_policy_module_path][self.student_policy_module_io]
         teacher_policy_module_outputs = teacher_io_dict[self.teacher_policy_module_path][self.teacher_policy_module_io]

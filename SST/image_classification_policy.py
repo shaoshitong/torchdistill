@@ -3,7 +3,7 @@ import datetime
 import os, sys
 import time
 
-os.chdir('G:/Alex/torchdistill')
+os.chdir('/home/qiuziming/product/torchdistill')
 root = os.getcwd()
 sys.path.append(root)
 import torch
