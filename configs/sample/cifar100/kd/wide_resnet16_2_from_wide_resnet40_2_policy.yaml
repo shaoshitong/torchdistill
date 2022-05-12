@@ -2,7 +2,7 @@ datasets:
   cifar100:
     name: &dataset_name 'cifar100'
     type: 'CIFAR100'
-    root: &root_dir !join ['/home/qiuziming/data/', *dataset_name]
+    root: &root_dir !join ['G:/data/', *dataset_name]
     splits:
       train:
         dataset_id: &cifar100_train !join [ *dataset_name, '/train' ]
@@ -51,7 +51,7 @@ models:
       num_classes: 100
       pretrained: True
     experiment: &teacher_experiment !join [*dataset_name, '-', *teacher_model_name]
-    ckpt: './resource/ckpt/icpkd/wrn_40_2_best.pth.tar'
+    ckpt: './resourc'
   student_model:
     name: &student_model_name 'wide_resnet16_2'
     params:
@@ -216,7 +216,7 @@ train:
               policy_nums: *policy_nums
               loss_weights: [ 1.0, 1.0, 0.0]
               p_t: 5
-              option: 4
+              option: 0
               negative_loss_weight: *negative_loss_weight
               positive_loss_weight: *positive_loss_weight
               kd_and_ce_weight: [0.0 , 0.0]

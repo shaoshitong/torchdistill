@@ -1,9 +1,10 @@
 import argparse
 import datetime
-import os,sys
+import os, sys
 import time
-os.chdir('/home/qiuziming/product/torchdistill')
-root=os.getcwd()
+
+os.chdir('G:/Alex/torchdistill')
+root = os.getcwd()
 sys.path.append(root)
 import torch
 from torch import distributed as dist
@@ -27,28 +28,30 @@ import SST.loss.utils
 import SST.datasets.wrapperpolicy
 import SST.models.special
 
-
+logger = def_logger.getChild(__name__)
 
 
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config',default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy_stage2.yaml',help='yaml file path')
+    parser.add_argument('--config', default='configs/sample/cifar100/kd/wide_resnet16_2_from_wide_resnet40_2_policy.yaml',
+                        help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('--log', default='log/cifar10/kd/policy/resnet18_from_resnet50_.txt',help='log file path')
+    parser.add_argument('--log', default='log/cifar100/kd/icpkd/wrn16_2_from_wrn40_2_option_2_2倍_1.txt', help='log file path')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
     parser.add_argument('--seed', type=int, help='seed in random number generator')
     parser.add_argument('-test_only', action='store_true', help='only test the models')
     parser.add_argument('-student_only', action='store_true', help='test the student model only')
     parser.add_argument('-log_config', action='store_true', help='log config')
-    # distributed training parameters
+    # distributed training parameters--
     parser.add_argument('--world_size', default=1, type=int, help='number of distributed processes')
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
     parser.add_argument('-adjust_lr', action='store_true',
                         help='multiply learning rate by number of distributed processes (world_size)')
-    parser.add_argument('--ema', default=True,type=bool,
+    parser.add_argument('--ema', default=False, type=bool,
                         help='if use ema')
-    parser.add_argument('--weight_loss',nargs='+',default=None,type=float)
+    parser.add_argument('--p', default=0.5 ,type=float,help='the probability of data augmentation')
+
     return parser
 
 
@@ -57,13 +60,14 @@ def load_model(model_config, device, distributed):
     if model is None:
         repo_or_dir = model_config.get('repo_or_dir', None)
         model = get_model(model_config['name'], repo_or_dir, **model_config['params'])
-    ckpt_file_path = model_config.get('ckpt',None)
+    ckpt_file_path = model_config.get('ckpt', None)
     if ckpt_file_path:
+        print("successfully load model!")
         load_ckpt(ckpt_file_path, model=model, strict=True)
     return model.to(device)
 
 
-def train_one_epoch(training_box, device, epoch, log_freq,ema,PEMA):
+def train_one_epoch(training_box, device, epoch, log_freq, ema, PEMA):
     metric_logger = MetricLogger(delimiter='  ')
     metric_logger.add_meter('lr', SmoothedValue(window_size=1, fmt='{value}'))
     metric_logger.add_meter('img/s', SmoothedValue(window_size=10, fmt='{value}'))
@@ -120,6 +124,7 @@ def evaluate(model, data_loader, device, device_ids, distributed, log_freq=1000,
 def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, device_ids, distributed, config, args):
     logger.info('Start training')
     train_config = config['train']
+
     lr_factor = args.world_size if distributed and args.adjust_lr else 1
     training_box = get_training_box(student_model, dataset_dict, train_config,
                                     device, device_ids, distributed, lr_factor) if teacher_model is None \
@@ -129,26 +134,28 @@ def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, de
     optimizer, lr_scheduler = training_box.optimizer, training_box.lr_scheduler
     if file_util.check_if_exists(ckpt_file_path):
         best_val_top1_accuracy, _, _ = load_ckpt(ckpt_file_path, optimizer=optimizer, lr_scheduler=lr_scheduler)
-    ema=args.ema
-    if ema and hasattr(training_box.criterion.term_dict['policy_loss'][0],'linear2'):
+    ema = args.ema
+    if ema and hasattr(training_box.criterion.term_dict['policy_loss'][0], 'linear2'):
         print("ems is true")
-        PEMA=EMA([training_box.teacher_model.policy_module,training_box.criterion.term_dict['policy_loss'][0].linear1],[training_box.student_model.policy_module,training_box.criterion.term_dict['policy_loss'][0].linear2])
+        PEMA = EMA(
+            [training_box.teacher_model.policy_module, training_box.criterion.term_dict['policy_loss'][0].linear1],
+            [training_box.student_model.policy_module, training_box.criterion.term_dict['policy_loss'][0].linear2])
     else:
-        PEMA=None
+        PEMA = None
     log_freq = train_config['log_freq']
     student_model_without_ddp = student_model.module if module_util.check_if_wrapped(student_model) else student_model
     start_time = time.time()
     for epoch in range(args.start_epoch, training_box.num_epochs):
         training_box.pre_process(epoch=epoch)
-        train_one_epoch(training_box, device, epoch, log_freq,ema,PEMA)
+        train_one_epoch(training_box, device, epoch, log_freq, ema, PEMA)
         val_top1_accuracy = evaluate(student_model, training_box.val_data_loader, device, device_ids, distributed,
                                      log_freq=log_freq, header='Validation:')
         if val_top1_accuracy > best_val_top1_accuracy and is_main_process():
             logger.info('Best top-1 accuracy: {:.4f} -> {:.4f}'.format(best_val_top1_accuracy, val_top1_accuracy))
             logger.info('Updating ckpt at {}'.format(ckpt_file_path))
             best_val_top1_accuracy = val_top1_accuracy
-            save_ckpt(student_model_without_ddp, optimizer, lr_scheduler,
-                      best_val_top1_accuracy, config, args, ckpt_file_path)
+            # save_ckpt(student_model_without_ddp, optimizer, lr_scheduler,
+            #           best_val_top1_accuracy, config, args, ckpt_file_path)
         training_box.post_process()
 
     if distributed:
@@ -161,10 +168,8 @@ def train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, de
 
 
 def main(args):
-    weight_loss=args.weight_loss
-    print("args weight loss is",weight_loss)
-    log_file_path = args.log.split('.txt')[0] + str(weight_loss[0]) + "_" + str(weight_loss[1]) + "_" + str(
-        weight_loss[2]) + ".txt"
+
+    log_file_path = args.log
     if is_main_process() and log_file_path is not None:
         setup_log_file(os.path.expanduser(log_file_path))
     distributed, device_ids = init_distributed_mode(args.world_size, args.dist_url)
@@ -173,25 +178,25 @@ def main(args):
     set_seed(args.seed)
     config = yaml_util.load_yaml_file(os.path.expanduser(args.config))
     device = torch.device(args.device)
-    config['train']['criterion']['sub_terms']['policy_loss']['criterion']['params']['loss_weights'] = weight_loss
+    config['train']['stage1']['train_data_loader']['dataset_wrapper']['params']['p']=args.p
     dataset_dict = util.get_all_datasets(config['datasets'])
     models_config = config['models']
     teacher_model_config = models_config.get('teacher_model', None)
-    teacher_model =\
+    teacher_model = \
         load_model(teacher_model_config, device, distributed) if teacher_model_config is not None else None
-    student_model_config =\
+    student_model_config = \
         models_config['student_model'] if 'student_model' in models_config else models_config['model']
 
-    ckpt_file_path = student_model_config.get('ckpt',None)
+    ckpt_file_path = student_model_config.get('ckpt', None)
     student_model = load_model(student_model_config, device, distributed)
     if args.log_config:
         logger.info(config)
 
     if not args.test_only:
         train(teacher_model, student_model, dataset_dict, ckpt_file_path, device, device_ids, distributed, config, args)
-        student_model_without_ddp =\
+        student_model_without_ddp = \
             student_model.module if module_util.check_if_wrapped(student_model) else student_model
-        if student_model_config.get('ckpr',None):
+        if student_model_config.get('ckpr', None):
             load_ckpt(student_model_config['ckpt'], model=student_model_without_ddp, strict=True)
     test_config = config['test']
     test_data_loader_config = test_config['test_data_loader']
@@ -204,7 +209,7 @@ def main(args):
     evaluate(student_model, test_data_loader, device, device_ids, distributed, log_freq=log_freq,
              title='[Student: {}]'.format(student_model_config['name']))
 
+
 if __name__ == '__main__':
-    logger = def_logger.getChild(__name__)
     argparser = get_argparser()
     main(argparser.parse_args())

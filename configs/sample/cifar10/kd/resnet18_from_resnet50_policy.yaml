@@ -72,8 +72,9 @@ train:
       num_workers: 4
       cache_output:
       dataset_wrapper:
-        name: 'PolicyDataset'
-        params: {}
+        name: 'PolicyDatasetC10'
+        params:
+          p: 0.5
     val_data_loader:
       dataset_id: *cifar10_val
       random_sample: False
