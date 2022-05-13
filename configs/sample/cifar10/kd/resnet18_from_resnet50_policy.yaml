@@ -51,7 +51,7 @@ models:
       pretrained: True
 #      repo_url: !join [ './resource/ckpt/', *dataset_name, '/kd/', 'cifar10-resnet56-origin-w', '.pt' ]
     experiment: &teacher_experiment !join [*dataset_name, '-', *teacher_model_name]
-    ckpt: !join ['./resource/ckpt/', *dataset_name, '/kd/', 'cifar10-resnet56-origin-o', '.pt']
+    ckpt: "./eee"
   student_model:
     name: &student_model_name 'resnet20'
     params:
@@ -214,12 +214,12 @@ train:
               policy_ratio: 0.75
               feature_nums: *feature_nums
               policy_nums: *policy_nums
-              loss_weights: [ 1.0, 1.0, 1.0]
+              loss_weights: [ 1.0, 1.0, 0.0]
               p_t: 5
-              option: 1
+              option: 0
               negative_loss_weight: *negative_loss_weight
               positive_loss_weight: *positive_loss_weight
-              kd_and_ce_weight: [1.0 , 1.0]
+              kd_and_ce_weight: [0.0 , 0.0]
               reduction: 'batchmean'
               type: 'mse'
               num_classes: *num_classes

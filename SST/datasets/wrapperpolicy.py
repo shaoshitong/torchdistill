@@ -107,6 +107,7 @@ class PolicyDatasetC10(BaseDatasetWrapper):
             SubPolicy(p, 'invert', 7),
             SubPolicy(p, 'rotate', 2),
             SubPolicy(p, 'shearY', 8),
+            SubPolicy(p, 'posterize', 9),
             SubPolicy(p, 'autocontrast', 8),
             SubPolicy(p, 'color', 3),
             SubPolicy(p, 'sharpness', 9),

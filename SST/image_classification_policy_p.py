@@ -2,8 +2,7 @@ import argparse
 import datetime
 import os, sys
 import time
-
-os.chdir('G:/Alex/torchdistill')
+os.chdir('/home/qiuziming/product/torchdistill')
 root = os.getcwd()
 sys.path.append(root)
 import torch
@@ -33,7 +32,7 @@ logger = def_logger.getChild(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(description='Knowledge distillation for image classification models')
-    parser.add_argument('--config', default='configs/sample/cifar100/kd/wide_resnet16_2_from_wide_resnet40_2_policy.yaml',
+    parser.add_argument('--config', default='configs/sample/cifar10/kd/resnet18_from_resnet50_policy.yaml',
                         help='yaml file path')
     # densenet100_from_densenet250-final_run.yaml resnet18_from_resnet50-final_run.yaml
     parser.add_argument('--device', default='cuda', help='device')
@@ -62,7 +61,6 @@ def load_model(model_config, device, distributed):
         model = get_model(model_config['name'], repo_or_dir, **model_config['params'])
     ckpt_file_path = model_config.get('ckpt', None)
     if ckpt_file_path:
-        print("successfully load model!")
         load_ckpt(ckpt_file_path, model=model, strict=True)
     return model.to(device)
 

@@ -92,6 +92,7 @@ def init_distributed_mode(world_size=1, dist_url='env://'):
 
 def load_ckpt(ckpt_file_path, model=None, optimizer=None, lr_scheduler=None, strict=True):
     if check_if_exists(ckpt_file_path):
+        print("successfully load model!,path is {}".format(ckpt_file_path))
         ckpt = torch.load(ckpt_file_path, map_location='cpu')
     elif isinstance(ckpt_file_path, str) and \
             (ckpt_file_path.startswith('https://') or ckpt_file_path.startswith('http://')):
